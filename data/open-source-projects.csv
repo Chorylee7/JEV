@@ -1,0 +1,31 @@
+repo,url,stars_20260921,license,created,pushed,base_model,layer,local_inference,http_server,calibration_claim
+TheoLeeCJ/SemIf,https://github.com/TheoLeeCJ/SemIf,2525,MIT,2026-09-16,2026-09-19,Qwen3.5-4B / MiniCPM5-2B / Qwen3-0.6B (frozen),L1,true,true,user-supplied
+r-ms/mini-jev,https://github.com/r-ms/mini-jev,35,MIT,2026-09-17,2026-09-18,Qwen3-4B-Instruct-2507 (frozen),L1,true,true,explicitly denied
+vinnylarouge/jevlike,https://github.com/vinnylarouge/jevlike,1097,MIT,2026-09-16,2026-09-16,byte-encoder from scratch / Qwen2.5-0.5B frozen,L2,true,false,none claimed
+bnsd55/jevmlx,https://github.com/bnsd55/jevmlx,47,MIT,2026-09-17,2026-09-21,Qwen2.5-7B/3B/1.5B-Instruct-4bit (MLX),L1,true,true,explicitly denied
+CoderInPajamas/JEV-MLX,https://github.com/CoderInPajamas/JEV-MLX,2,MIT,2026-09-20,2026-09-20,Qwen3.5-9B / Gemma 4 26B-A4B / GLM-4.7-Flash,L1,true,false,explicitly denied
+day253/microjev,https://github.com/day253/microjev,1,MIT,2026-09-20,2026-09-20,GPT-2 124M (MLX),L2,true,false,none claimed
+NullPo-jp/PocketJev,https://github.com/NullPo-jp/PocketJev,0,MIT,2026-09-17,2026-09-17,Qwen3-VL (MLX Swift/iOS),L1,true,false,none claimed
+APUS-AI-Lab/fast-browser-use,https://github.com/APUS-AI-Lab/fast-browser-use,35,MIT,2026-09-19,2026-09-21,Qwen3.5-9B / 35B-A3B,L1,true,true,none claimed
+tamaratran/fast-jev-compaction,https://github.com/tamaratran/fast-jev-compaction,5380,MIT,2026-09-17,2026-09-18,hosted jev-latest,L0,false,false,explicitly denied
+perixtar/jev-e2e,https://github.com/perixtar/jev-e2e,3,MIT,2026-09-18,2026-09-19,hosted typesafe/jev-1.13 via OpenRouter,L0,false,false,none claimed
+browser-use/jev-ultrafast,https://github.com/browser-use/jev-ultrafast,12600,MIT,2026-09-16,2026-09-18,hosted JEV + inception/mercury-2.5,L0,false,false,none claimed
+logicrw/awesome-jev-projects,https://github.com/logicrw/awesome-jev-projects,240,MIT,2026-09-18,2026-09-21,-,catalog,false,false,n/a
+yibie/awesome-jev,https://github.com/yibie/awesome-jev,674,NONE,2026-09-17,2026-09-21,-,catalog,false,false,n/a
+TianyuCodings/NanoJev,https://github.com/TianyuCodings/NanoJev,1522,MIT,2026-09-17,2026-09-20,Qwen3-0.6B + decision heads,L2,true,true,none claimed
+jaredpalmer/kev,https://github.com/jaredpalmer/kev,1167,Apache-2.0,2026-09-17,2026-09-21,Qwen3.5-0.8B/4B/9B + LoRA,L2,true,true,explicitly denied
+bespokelabsai/nimble,https://github.com/bespokelabsai/nimble,1217,NONE,2026-09-18,2026-09-20,Qwen3.5-9B + LoRA,L2,true,true,none claimed
+featherless-ai/simple-jev,https://github.com/featherless-ai/simple-jev,404,NONE,2026-09-18,2026-09-20,Qwen3.5-0.8B / Gemma 4 26B-A4B / Laya,L1,true,true,explicitly denied
+wfzyx/von,https://github.com/wfzyx/von,241,Apache-2.0,2026-09-18,2026-09-21,ModernBERT-Large 395M,L2,true,true,claimed T=1.1692
+ekzhang/openjev-sglang,https://github.com/ekzhang/openjev-sglang,239,NONE,2026-09-17,2026-09-18,Qwen3.6-35B-A3B (SGLang),L1,true,true,none claimed
+razorback16/openjev,https://github.com/razorback16/openjev,220,Apache-2.0,2026-09-18,2026-09-20,DiffusionGemma 26B-A4B,L1,true,false,none claimed
+Heman10x-NGU/openJev-verdict-2.0,https://github.com/Heman10x-NGU/openJev-verdict-2.0,205,NOASSERTION,2026-09-19,2026-09-20,ModernBERT-base 151M + dual confidence head,L2,true,false,claimed ECE 0.0144
+logan-markewich/jeff,https://github.com/logan-markewich/jeff,173,MIT,2026-09-19,2026-09-20,GliFormer (GLiNER),L1,true,false,none claimed
+Mapika/decider,https://github.com/Mapika/decider,163,Apache-2.0,2026-09-16,2026-09-20,Qwen3.5-2B/0.8B/35B-A3B,L2,true,false,calibration-aware RL
+deepanwadhwa/OpenDecision,https://github.com/deepanwadhwa/OpenDecision,42,Apache-2.0,2026-09-17,2026-09-20,NLI,L1,true,false,none claimed
+ikermoel/open-alternative-jev,https://github.com/ikermoel/open-alternative-jev,38,Apache-2.0,2026-09-18,2026-09-21,any open-weights (Qwen3.6-27B / 3.5-4B),L2,true,false,claimed ECE 2.1%
+fstandhartinger/jevbench,https://github.com/fstandhartinger/jevbench,31,MIT,2026-09-19,2026-09-21,benchmark harness,bench,false,false,n/a
+rorshopping/jev-on-a-laptop,https://github.com/rorshopping/jev-on-a-laptop,22,NOASSERTION,2026-09-16,2026-09-17,Qwen-2.5-1B-RLCD / Qwen2.5-1.5B-4bit,L1,true,false,none claimed
+Micha0827/snapjudge,https://github.com/Micha0827/snapjudge,7,MIT,2026-09-18,2026-09-19,Qwen + MLX,L1,true,true,none claimed
+NandhaKishorM/laya,https://github.com/NandhaKishorM/laya,5060,Apache-2.0,2026-09-18,2026-09-20,self-trained ModernBERT-class (~421M),L3,true,false,claimed ECE 0.081 after temperature fitting
+mizorewww/laya-mlx,https://github.com/mizorewww/laya-mlx,1938,Apache-2.0,2026-09-19,2026-09-19,Laya (ModernBERT) on MLX,L3,true,false,none claimed
