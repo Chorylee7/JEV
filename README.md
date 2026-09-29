@@ -12,6 +12,28 @@
 
 ---
 
+## 快速参考卡 / Quick Reference Card
+
+| 维度 | 结论 | 证据 |
+|---|---|---|
+| 它是什么 | 托管"决策模型"：`state` + 类型化问题 → 结构化答案 + 概率；**不生成文本** | 【官方】 |
+| 三种原语 | `noul`（0–1 是非）/ `choice`（≤255 单选）/ `score`（2–10 级有序评分） | 【官方】 |
+| 价格 | $0.042 / 百万 input token，输出免费；10k token state ≈ $0.00042/次 | 【官方】 |
+| 延迟 | 官方 70–500ms；独立实测 p50 314ms / p95 399ms | 【第三方】 |
+| 上下文 | 请求 64k；`state` + 最长单问 ≤ 32k；**仅文本输入** | 【官方】 |
+| 速度宣称 | 官方 193.6×（首页）与 40×–200×（博文）**自相矛盾**；独立实测 4.8×–25× | 【官方/第三方】 |
+| 成本宣称 | 官方 444.6×（只对最贵模型那一行）；独立实测 8.6×–580×；中文实测仅约 2.7× | 【官方/第三方】 |
+| 准确率 | 官方四工作流平均 67.8%（≈ Terra / Sonnet 5 档）；二元门禁可达 100%（LangChain 500 次对照人类 oracle） | 【官方/第三方】 |
+| 明显短板 | 发票类 61.8%（9 模型第 8）、中文客服 64–65%、77 类意图 0.78、算术/日期/间接推理 | 【官方/第三方】 |
+| 弃权率 | 实测 30% 弃权把 76× 成本优势压到 **3.2×**；天花板 = `1/弃权率` | 【第三方】 |
+| 概率校准 | 可知任务好（ECE 0.024 ≈ 噪声底），不可知任务过度自信（ECE 0.107）；**别用官方 `confidence` 字段，用 `max(probabilities)`** | 【第三方】 |
+| 数据政策 | 不训练客户请求/响应；**ZDR 仅企业版** | 【官方 09-29】 |
+| 当前版本 | `jev-1.13.0`（09-29 核实，无 preview 构建） | 【官方】 |
+| 开源首选 | **Laya**（Apache-2.0，28.1k★，T4 上 33ms，微调后 0.766 > JEV 0.727；**>20 个选项明显退化**） | 【项目方自测】 |
+| 别用的场景 | 高基数分类、中文重负载、数值阈值判断、要求逻辑一致的概率、>100Hz 控制回路 | 综合 |
+
+---
+
 ## 摘要 / TL;DR
 
 > **EN** — JEV is not a chat model. It is a hosted "System One" decision model from TypeSafe AI (San Francisco, founded 2024, $40M seed led by DCVC, released 2026-09-15). You send a `state` plus typed questions; it returns structured answers with probabilities and never writes free text. Weights are closed; API-only. Official headline claims (193.6× faster / 444.6× cheaper) are contradicted by other numbers on TypeSafe's own pages (40×–200×, 20×–200×, 40×–1000×), and independent tests land between 5×–25× on speed and 8.6×–580× on cost. Open source split into two camps: **interface reproductions** (read option-token logits from a frozen LLM, skip autoregressive decoding) and **genuinely retrained open-weight decision models** (Laya is the standout: Apache-2.0, ModernBERT-class, ~33 ms, post-finetune 0.766 vs JEV's 0.727 on typed-decisions — but it collapses on questions with more than ~20 options).
@@ -477,10 +499,12 @@
 ### 7.1 本仓库内容
 
 ```
-README.md                        # 本报告正文（v1.1）
+README.md                        # 本报告正文（v1.2）
+REPORT-EN.md                     # 全英文版报告（v1.1 内容的完整英文翻译）
 LICENSE                          # CC BY 4.0（报告文本许可）
 CITATION.cff                     # 引用格式
 CHANGELOG.md                     # 版本更新记录
+eval/                            # 评估脚手架：在你自己的样本上实测 JEV/Laya（准确率/弃权率/ECE/抖动）
 research/jev-official.md         # 官方事实与 API 契约的原始核实记录（含逐条来源）
 research/os-reproductions.md     # 开源复现项目逐个核实记录（含 gh api 原始输出）
 research/ecosystem-benchmarks.md # 第三方评测、生态目录、风险分析的原始记录

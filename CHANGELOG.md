@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2 — 2026-09-29
+
+**新增交付物**
+- **快速参考卡**：README 顶部新增"Quick Reference Card"（15 行关键结论一表速览）。
+- **`REPORT-EN.md`**：全英文版报告（README v1.1 的完整英文翻译，582 行，证据标记映射为 [Official]/[Third-party]/[Vendor-reported]/[Unverified]）。
+- **`eval/` 评估脚手架**：在你自己的 JSONL 样本上实测 JEV（或本地 Laya / mock）的准确率、弃权率、自动处理区间准确率、ECE、抖动（flip rate）、串联成功率、成本与延迟。核心零依赖（stdlib），mock 模式可无 key 冒烟。已通过冒烟测试（`reports/smoke`，gitignored）。
+- `.gitignore`：排除 `reports/`、`__pycache__/` 等。
+
 ## v1.1 — 2026-09-29
 
 **数据刷新（gh api 当日快照）**

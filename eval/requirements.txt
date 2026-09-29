@@ -1,0 +1,3 @@
+# 核心功能零依赖（仅 Python 标准库，3.10+）。
+# 以下为可选依赖，仅在 --provider laya 时需要（会拉取 torch / transformers 并下载模型权重）：
+# laya

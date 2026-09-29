@@ -1,0 +1,5 @@
+# eval harness 跑测输出
+reports/
+__pycache__/
+*.pyc
+.DS_Store
