@@ -1,4 +1,17 @@
-# JEV Research Report: TypeSafe's System One Decision Model and Its Open-Source Alternatives
+<div align="center">
+
+# JEV Research Report
+
+**TypeSafe's System One Decision Model and Its Open-Source Alternatives**
+
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v1.2-blue)](CHANGELOG.md)
+[![Data Snapshot](https://img.shields.io/badge/data%20snapshot-2026--09--29-orange)](CHANGELOG.md)
+[![GitHub Stars](https://img.shields.io/github/stars/Chorylee7/JEV?style=social)](https://github.com/Chorylee7/JEV/stargazers)
+
+[⚡ Quick Reference Card](#quick-reference-card) · [📋 TL;DR](#tldr) · [🇨🇳 中文版](README.md) · [🧪 Eval Harness](eval/) · [📜 Changelog](CHANGELOG.md)
+
+</div>
 
 > **About this document** — This is the English translation of `README.md` v1.1 (2026-09-29). The original Chinese-English bilingual version lives in [README.md](README.md). Evidence tags: [Official] = official sources · [Third-party] = independent tests/media · [Vendor-reported] = self-reported by repo authors · [Unverified] = no primary source found.
 

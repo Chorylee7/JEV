@@ -1,6 +1,19 @@
-# JEV 调研报告：System One 决策模型与开源对标
+<div align="center">
 
-**JEV Research Report: TypeSafe's System One Decision Model and Its Open-Source Alternatives**
+# JEV 调研报告
+
+**TypeSafe System One 决策模型与开源对标**
+
+**JEV Research Report: What JEV really is — and the open-source alternatives**
+
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v1.2-blue)](CHANGELOG.md)
+[![Data Snapshot](https://img.shields.io/badge/data%20snapshot-2026--09--29-orange)](CHANGELOG.md)
+[![GitHub Stars](https://img.shields.io/github/stars/Chorylee7/JEV?style=social)](https://github.com/Chorylee7/JEV/stargazers)
+
+[⚡ 快速参考卡](#快速参考卡--quick-reference-card) · [📋 TL;DR](#摘要--tldr) · [🌐 English Report](REPORT-EN.md) · [🧪 评估脚手架](eval/) · [📜 更新日志](CHANGELOG.md)
+
+</div>
 
 | | |
 |---|---|
@@ -12,7 +25,7 @@
 
 ---
 
-## 快速参考卡 / Quick Reference Card
+## ⚡ 快速参考卡 / Quick Reference Card
 
 | 维度 | 结论 | 证据 |
 |---|---|---|
@@ -34,7 +47,7 @@
 
 ---
 
-## 摘要 / TL;DR
+## 📋 摘要 / TL;DR
 
 > **EN** — JEV is not a chat model. It is a hosted "System One" decision model from TypeSafe AI (San Francisco, founded 2024, $40M seed led by DCVC, released 2026-09-15). You send a `state` plus typed questions; it returns structured answers with probabilities and never writes free text. Weights are closed; API-only. Official headline claims (193.6× faster / 444.6× cheaper) are contradicted by other numbers on TypeSafe's own pages (40×–200×, 20×–200×, 40×–1000×), and independent tests land between 5×–25× on speed and 8.6×–580× on cost. Open source split into two camps: **interface reproductions** (read option-token logits from a frozen LLM, skip autoregressive decoding) and **genuinely retrained open-weight decision models** (Laya is the standout: Apache-2.0, ModernBERT-class, ~33 ms, post-finetune 0.766 vs JEV's 0.727 on typed-decisions — but it collapses on questions with more than ~20 options).
 
@@ -59,7 +72,7 @@
 
 ---
 
-## 1. JEV 是什么 / What is JEV
+## 🤖 1. JEV 是什么 / What is JEV
 
 > **EN** — JEV is TypeSafe AI's "System One" model: a hosted, text-in/structured-out decision service, not a generative LLM. Its API is a single endpoint (`POST /v1/systemone`) taking `state` + `questions` and returning typed answers. Only three question primitives exist. It cannot write text, cannot explain itself, has no world knowledge beyond the supplied state, and is English-first. Weights are not published and no paper exists.
 
@@ -166,7 +179,7 @@
 
 ---
 
-## 2. 官方主张 vs 独立验证 / Official Claims vs Independent Evidence
+## 📊 2. 官方主张 vs 独立验证 / Official Claims vs Independent Evidence
 
 > **EN** — TypeSafe's marketing numbers vary by page (193.6×/444.6× on the homepage, 40×–200× in the launch post, 20×–200× and 40×–1000× in the gated onboarding page). Eight independent tests published between 09-15 and 09-19 land at 4.8×–25× on latency and 8.6×–580× on cost. Accuracy is highly workflow-dependent: JEV ranks 8th of 9 on the invoice-processing workflow in TypeSafe's *own* eval page. The two most useful independent findings are that a 30% abstain rate collapses the cost advantage from 76× to 3.2×, and that on tasks where the model cannot know the answer it is severely overconfident (ECE 0.107 vs a 0.024 noise floor).
 
@@ -234,7 +247,7 @@
 
 ---
 
-## 3. 开源生态全景 / The Open-Source Landscape
+## 🌐 3. 开源生态全景 / The Open-Source Landscape
 
 > **EN** — Within five days of launch, GitHub accumulated thousands of JEV-related repos. Filtering for projects that actually explain the mechanism leaves ~20–25 real reproductions out of ~4,100 created-after-09-01 repos; the rest are skills, wrappers, awesome-lists and same-day bulk submissions. The dominant technique is identical everywhere: freeze an open LLM, read the logits of candidate answer tokens at a single position, apply a restricted softmax, and skip autoregressive decoding. Notably, the projects that measured their own speedup report **4×–5.2×**, not 200× — because a frozen 4B model still has to prefill the state. Almost none of them claim calibrated probabilities; several explicitly disclaim it.
 
@@ -330,7 +343,7 @@
 
 ---
 
-## 4. 真正自训并开放权重的决策模型 / Genuinely Retrained Open-Weight Models
+## 🏗️ 4. 真正自训并开放权重的决策模型 / Genuinely Retrained Open-Weight Models
 
 > **EN** — Laya (Apache-2.0, **28k★**, three checkpoints on HuggingFace, ~421M ModernBERT-class encoder with decision heads) has become the dominant open-weight decision model: it beats JEV's published numbers on typed-decisions (0.766 vs 0.727) and is ~7.8× faster, but every Laya accuracy figure is currently self-reported, its base checkpoints are near chance zero-shot, and it degrades badly above ~20 options. On 2026-09-23 Together AI released **tev1** (Qwen3.5-4B LoRA, returns a single answer letter rather than option probabilities) — the first established company to ship an open-weight JEV-style model. The rest of the "retrained" camp are LoRA/head adaptations of frozen models (L2). The 2025-03 RL non-autoregressive lineage is real (arXiv:2503.23303) but the promised weights/dataset cannot be found.
 
@@ -403,7 +416,7 @@
 
 ---
 
-## 5. 选型建议 / Selection Guide
+## 🧭 5. 选型建议 / Selection Guide
 
 > **EN** — Use hosted JEV when you want to validate the "typed decision" pattern quickly and your data may leave your network. Go local (SemIf / kev / jevmlx / simple-jev / von) when offline or data-residency matters, but measure the accuracy gap yourself. Only Laya is a genuine self-hosted *model*, and it must be fine-tuned and temperature-fitted to be useful. If you have labels, a fine-tuned encoder classifier is often the cheapest and best-calibrated option. Always pin the model version, always measure the abstain rate, and never plan capacity on the advertised speedup.
 
@@ -432,7 +445,7 @@
 
 ---
 
-## 6. 风险与局限 / Risks and Limitations
+## ⚠️ 6. 风险与局限 / Risks and Limitations
 
 > **EN** — The main risks are: (1) official throughput/cost multipliers are not reproducible and vary by a factor of ~10 across the vendor's own pages; (2) abstention silently destroys the cost advantage; (3) calibration is task-dependent and the `confidence` field is worse than `max(probability)`; (4) closed weights with no per-customer fine-tuning means you cannot fix systematic errors except by prompt/schema engineering; (5) the open-source side has a real licensing gap (many repos have no license at all) and routinely mislabels itself as "JEV"; (6) the ecosystem is inflated by same-day bulk submissions — volume is not quality.
 
@@ -492,7 +505,7 @@
 
 ---
 
-## 7. 附录：核实方法、未核实清单与参考链接 / Appendix
+## 📎 7. 附录：核实方法、未核实清单与参考链接 / Appendix
 
 > **EN** — Repo metadata was pulled live with `gh api` on 2026-09-21 and refreshed on 2026-09-29; official documentation pages, the official eval site, and launch post were fetched and parsed directly (raw captures live in `research/`). Numbers that only exist in secondary reporting are flagged as unverified below. Everything here is reproducible with the commands in 7.4.
 
@@ -579,4 +592,10 @@ curl -s https://evals.typesafe.ai/ | sed 's/<[^>]*>/ /g'
 
 ---
 
-*本报告由 AI 调研代理搜集整理，所有数字均标注了来源类型与核实状态；发现错误请提交 issue 或 PR 修正。*
+<div align="center">
+
+<sub>本报告由 AI 调研代理搜集整理，所有数字均标注了来源类型与核实状态 · 文本采用 [CC BY 4.0](LICENSE) 许可 · 引用格式见 [CITATION.cff](CITATION.cff)</sub>
+
+<sub>发现错误欢迎提 [Issue](https://github.com/Chorylee7/JEV/issues) 或 PR 修正</sub>
+
+</div>
