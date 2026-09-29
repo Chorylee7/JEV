@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: "JEV 调研报告：TypeSafe System One 决策模型与开源对标"
+message: "如引用本报告，请使用以下引用格式。"
+type: report
+authors:
+  - name: Chorylee7
+    affiliation: ""
+url: "https://github.com/Chorylee7/JEV"
+repository-code: "https://github.com/Chorylee7/JEV"
+version: "1.1.0"
+date-released: "2026-09-29"
+license: CC-BY-4.0
+keywords:
+  - JEV
+  - TypeSafe
+  - System One
+  - decision model
+  - LLM routing
+  - research report
+abstract: "对 TypeSafe AI 于 2026-09-15 发布的 System One 决策模型 JEV 的独立调研：官方 API 契约、官方主张与第三方独立验证的对照、GitHub 开源复现与自研开放权重模型（Laya 等）生态全景、选型建议与风险分析。所有数字标注证据等级。"

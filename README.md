@@ -4,10 +4,11 @@
 
 | | |
 |---|---|
-| 核实日期 / Verified | 2026-09-21 |
+| 核实日期 / Verified | 2026-09-21（v1.0 初版）；star/许可证/生态数据于 **2026-09-29**（v1.1）刷新，见 [CHANGELOG.md](CHANGELOG.md) |
 | 数据来源 / Sources | 官方文档、官方评测页、GitHub API（`gh api` 当日快照）、第三方独立评测、中文媒体 |
 | 证据分级 / Evidence tags | 【官方】官方发布 · 【第三方】独立测试/媒体 · 【项目方自测】仓库作者自报 · 【未核实】未能找到一手来源 |
-| 重要提醒 / Caveat | 本报告所有 star、许可证、fork 数据均为 2026-09-21 的 GitHub API 快照，会分钟级漂移；所有 benchmark 数字**除注明外均为项目方或厂商自报，本报告未做任何实际跑测**。 |
+| 许可证 / License | 本报告文本采用 [CC BY 4.0](LICENSE)；引用格式见 [CITATION.cff](CITATION.cff) |
+| 重要提醒 / Caveat | 报告主体结论基于 2026-09-21 的核实；star/许可证/生态规模数字为 2026-09-29 快照，会分钟级漂移；所有 benchmark 数字**除注明外均为项目方或厂商自报，本报告未做任何实际跑测**。 |
 
 ---
 
@@ -21,7 +22,7 @@
 - **官方数字自相矛盾**：首页写 193.6× 快 / 444.6× 便宜，发布博文写 40×–200×，非公开 onboarding 页写 20×–200× 与 40×–1,000×。第三方独立实测：速度 **4.8×–25×**，成本 **8.6×–580×**，没有一家复现出 444.6×。
 - **效果高度任务依赖**：官方自测四个工作流里，JEV 平均 67.8%（落后 GPT-5.6 Sol 74.1%），其中**发票处理 61.8% 在 9 个模型里排第 8**（仅胜 Haiku 4.5）——这是"JEV 不是通解"最硬的证据，且出自官方自己的评测页。
 - **官方主动披露的失败模式**：算术与计数、日期比较、间接推理、大 state 干扰、对抗内容等 9 类（`jaggedness` 页）；并承认**同一个问题与其否定答案的概率之和可以 ≠ 1**（官方示例 0.72 + 0.47 = 1.19）。
-- **开源生态分两派**：① **接口复现**——把现成开源模型冻结，只读候选答案 token 的 logits 并做受限 softmax，跳过自回归解码（SemIf 2.5k★、`browser-use/jev-ultrafast` 12.6k★、NanoJev 1.5k★、kev 1.2k★ 等）；② **真正自训并开放权重**——Laya（Apache-2.0，三个 checkpoint，T4 上单问 32.8–39.5 ms）是唯一在公开基准上正面压过 JEV 的开源方案，但它的 base checkpoint 在 zero-shot 下**接近瞎猜**，且 20 个以上选项的场景明显退化。
+- **开源生态分两派**（star 为 2026-09-29 快照）：① **接口复现**——把现成开源模型冻结，只读候选答案 token 的 logits 并做受限 softmax，跳过自回归解码（`browser-use/jev-ultrafast` 21.3k★、SemIf-OpenJev 4.5k★、kev 7.7k★、NanoJev 2.4k★ 等）；② **真正自训并开放权重**——Laya（Apache-2.0，**28.1k★**、HF likes 4.4k，三个 checkpoint，T4 上单问 32.8–39.5 ms）已成为该方向的**绝对主导者**，也是唯一在公开基准上正面压过 JEV 的开源方案，但它的 base checkpoint 在 zero-shot 下**接近瞎猜**，且 20 个以上选项的场景明显退化；2026-09-23 起 Together AI 发布 open-weight 的 `tev1`（Qwen3.5-4B LoRA 微调，输出单字母答案），是**首家正规公司下场**。
 - **选型结论**：把 JEV 当"免训练的快速决策层"是合理的；但把官方 200×/400× 当作规划前提是有风险的。生产环境至少要实测三件事：**你任务上的准确率、弃权率（实测 30% 弃权即可把 76× 成本优势压到 3.2×）、概率在你数据上是否真的校准**。长期自托管优先考虑 Laya（配合微调与温度拟合）或"小模型 + 严格 JSON schema"，而不是直接套用任何复现项目的宣传数字。
 
 **目录 / Contents**
@@ -120,6 +121,8 @@
 - 权重与微调：**闭源**；官方明确"所有账号共用同一套权重，不做 per-customer 微调/LoRA"。
 - 价格可持续性：官方自己写了一句罕见的坦白——"**我们无法证明它没有被补贴**"。
 - 地区可用性：央广网 2026-09-20 报道"该服务尚未向中国大陆地区开放"【第三方】；但官方文档与服务条款中**未见任何地区/出口管制条款**（本次已 grep 核实），因此这条**以官方口径论仍属未证实**。
+- 数据政策（**2026-09-29 核实**）：官方 Models 页明确"**Jev is not trained on customer requests or responses**"；DPA、隐私政策与零数据保留（ZDR）**仅面向企业版**（<https://docs.typesafe.ai/models>）。
+- 版本状态（**2026-09-29 核实**）：仍为 `jev-1.13.0`，`jev-preview` 与 `jev-latest` 当前指向同一版本、无 preview 构建；限速仍声明"动态调整、可不另行通知"。
 
 ### 1.5 官方承认的能力天花板
 
@@ -218,68 +221,77 @@
 | 层次 | 定义 | 代表 | 是否本地推理 | 是否有自训权重 |
 |---|---|---|---|---|
 | L0 客户端应用 | 自己写 prompt/schema，仍调用云端 JEV API | `browser-use/jev-ultrafast`、`tamaratran/fast-jev-compaction`、`perixtar/jev-e2e`、`typesafe-ai/skills` | ✗ | ✗ |
-| L1 接口复现 | 冻结现成开源模型，**只读 option token 的 logits** + 受限 softmax，跳过自回归解码 | `TheoLeeCJ/SemIf`、`r-ms/mini-jev`、`bnsd55/jevmlx`、`featherless-ai/simple-jev`、`ekzhang/openjev-sglang` | ✓ | ✗（权重冻结） |
-| L2 复现 + 自训 head/adapter | 在 L1 基础上自己训练打分头或 LoRA | `vinnylarouge/jevlike`、`TianyuCodings/NanoJev`、`jaredpalmer/kev`、`bespokelabsai/nimble`、`wfzyx/von`、`Mapika/decider` | ✓ | ✓（部分/适配器） |
+| L1 接口复现 | 冻结现成开源模型，**只读 option token 的 logits** + 受限 softmax，跳过自回归解码 | `TheoLeeCJ/SemIf-OpenJev`、`r-ms/mini-jev`、`bnsd55/jevmlx`、`featherless-ai/simple-jev`、`ekzhang/openjev-sglang` | ✓ | ✗（权重冻结） |
+| L2 复现 + 自训 head/adapter | 在 L1 基础上自己训练打分头或 LoRA | `vinnylarouge/jevlike`、`TianyuCodings/NanoJev`、`jaredpalmer/kev`、`bespokelabsai/nimble`、`wfzyx/von`、`Mapika/decider`、`togethercomputer/tev1` | ✓ | ✓（部分/适配器） |
 | L3 自研决策模型 | 自己训模型、发权重与数据 | **Laya**（见第 4 章） | ✓ | ✓ |
 
 **这一区分很关键**：L1/L2 的所有"加速倍数"都建立在"**跳过解码**"上，而**state 的 prefill 成本省不掉**。所以它们的实测加速是**个位数倍数**，而不是 200×。
 
-### 3.2 核心项目对照表（star 为 2026-09-21 GitHub API 快照）
+### 3.2 核心项目对照表（star 为 2026-09-29 GitHub API 快照）
 
 | 仓库 | ★ | 许可证 | 底座模型 | 硬件 | HTTP 服务 | 自称校准 |
 |---|---:|---|---|---|---|---|
-| [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast) | **12,600** | MIT | 云端 JEV + `inception/mercury-2.5` | 任意 | — | — |
-| [tamaratran/fast-jev-compaction](https://github.com/tamaratran/fast-jev-compaction) | **5,380** | MIT | 云端 `jev-latest` | 任意 | — | **明确否认** |
-| [TheoLeeCJ/SemIf](https://github.com/TheoLeeCJ/SemIf)（原名 OpenJev） | **2,525** | MIT | Qwen3.5-4B / MiniCPM5-2B / Qwen3-0.6B（冻结） | CUDA / Apple MLX / WebGPU | demo | 要求用户自行校准 |
-| [TianyuCodings/NanoJev](https://github.com/TianyuCodings/NanoJev) | **1,522** | MIT | Qwen3-0.6B + 自训 decision heads | CUDA / CPU | ✓ | — |
-| [bespokelabsai/nimble](https://github.com/bespokelabsai/nimble) | **1,217** | **无** | Qwen3.5-9B + LoRA | CUDA | ✓ | — |
-| [jaredpalmer/kev](https://github.com/jaredpalmer/kev) | **1,167** | Apache-2.0 | Qwen3.5-0.8B/4B/9B + LoRA | CUDA / Apple Silicon | ✓ | **明确否认** |
-| [vinnylarouge/jevlike](https://github.com/vinnylarouge/jevlike) | **1,097** | MIT | 从零训 byte-encoder / Qwen2.5-0.5B 冻结 | CPU / MPS / CUDA | — | 不声称 |
-| [featherless-ai/simple-jev](https://github.com/featherless-ai/simple-jev) | 404 | **无** | Qwen3.5-0.8B / Gemma 4 26B-A4B / Laya | CPU / CUDA | ✓ | **明确否认** |
-| [wfzyx/von](https://github.com/wfzyx/von) | 241 | Apache-2.0 | ModernBERT-Large 395M | CPU / CUDA | ✓ | ✓（T=1.1692） |
-| [ekzhang/openjev-sglang](https://github.com/ekzhang/openjev-sglang) | 239 | **无** | Qwen3.6-35B-A3B（SGLang） | B200 级 | ✓ | — |
-| [razorback16/openjev](https://github.com/razorback16/openjev) | 220 | Apache-2.0 | DiffusionGemma 26B-A4B | CUDA | — | — |
-| [Heman10x-NGU/openJev-verdict-2.0](https://github.com/Heman10x-NGU/openJev-verdict-2.0) | 205 | NOASSERTION | ModernBERT-base 151M + 双置信头 | CPU / WebGPU | — | ✓（ECE 1.44%，自测 receipt） |
-| [Mapika/decider](https://github.com/Mapika/decider) | 163 | Apache-2.0 | Qwen3.5-2B/0.8B/35B-A3B | CUDA | — | ✓（calibration-aware RL） |
-| [bnsd55/jevmlx](https://github.com/bnsd55/jevmlx) | 47 | MIT | Qwen2.5-7B/3B/1.5B-4bit（MLX） | Apple Silicon / CPU | ✓ | **明确否认** |
-| [ikermoel/open-alternative-jev](https://github.com/ikermoel/open-alternative-jev) | 38 | Apache-2.0 | 任意 open-weights | CUDA | — | ✓（MMLU ECE 5.4%→2.1%） |
-| [APUS-AI-Lab/fast-browser-use](https://github.com/APUS-AI-Lab/fast-browser-use) | 35 | MIT | Qwen3.5-9B / 35B-A3B | GPU / 无 GPU 的 Mac/PC | ✓ | — |
-| [r-ms/mini-jev](https://github.com/r-ms/mini-jev) | 35 | MIT | Qwen3-4B-Instruct-2507（冻结） | CUDA / MPS | ✓ | **明确否认**（"不是校准概率"） |
-| [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya) | **5,060** | Apache-2.0 | **自研** ModernBERT 系（≈421M） | CPU / CUDA | SDK | ✓（温度拟合后 ECE 0.081） |
+| [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya) | **28,058** | Apache-2.0 | **自研** ModernBERT 系（≈421M） | CPU / CUDA | SDK | ✓（温度拟合后 ECE 0.081） |
+| [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast) | 21,264 | MIT | 云端 JEV + `inception/mercury-2.5` | 任意 | — | — |
+| [jaredpalmer/kev](https://github.com/jaredpalmer/kev) | 7,749 | Apache-2.0 | Qwen3.5-0.8B/4B/9B + LoRA | CUDA / Apple Silicon | ✓ | **明确否认** |
+| [tamaratran/fast-jev-compaction](https://github.com/tamaratran/fast-jev-compaction) | 7,167 | MIT | 云端 `jev-latest` | 任意 | — | **明确否认** |
+| [mizorewww/laya-mlx](https://github.com/mizorewww/laya-mlx) | 6,604 | Apache-2.0 | Laya 的 MLX 移植（非 JEV 复现） | Apple Silicon | — | — |
+| [TheoLeeCJ/SemIf-OpenJev](https://github.com/TheoLeeCJ/SemIf-OpenJev)（原名 OpenJev→SemIf，09-22 二次更名） | 4,547 | MIT | Qwen3.5-4B / MiniCPM5-2B / Qwen3-0.6B（冻结） | CUDA / Apple MLX / WebGPU | demo | 要求用户自行校准 |
+| [TianyuCodings/NanoJev](https://github.com/TianyuCodings/NanoJev) | 2,419 | MIT | Qwen3-0.6B + 自训 decision heads | CUDA / CPU | ✓ | — |
+| [bespokelabsai/nimble](https://github.com/bespokelabsai/nimble) | 1,897 | **无** | Qwen3.5-9B + LoRA | CUDA | ✓ | — |
+| [vinnylarouge/jevlike](https://github.com/vinnylarouge/jevlike) | 1,332 | MIT | 从零训 byte-encoder / Qwen2.5-0.5B 冻结 | CPU / MPS / CUDA | — | 不声称 |
+| [ollaya-dev/ollaya](https://github.com/ollaya-dev/ollaya) | 916 | Apache-2.0 | Laya / decider / NLI / GLiClass 本地服务化（"决策模型的 Ollama"） | CPU / GPU | ✓ | — |
+| [Mapika/decider](https://github.com/Mapika/decider) | 887 | Apache-2.0 | Qwen3.5-2B/0.8B/35B-A3B + vision 版 | CUDA | — | ✓（calibration-aware RL） |
+| [wfzyx/von](https://github.com/wfzyx/von) | 763 | Apache-2.0 | ModernBERT-Large 395M | CPU / CUDA | ✓ | ✓（T=1.1692） |
+| [featherless-ai/simple-jev](https://github.com/featherless-ai/simple-jev) | 567 | **Apache-2.0**（09-28 补证，此前无） | Qwen3.5-0.8B / Gemma 4 26B-A4B / Laya | CPU / CUDA | ✓ | **明确否认** |
+| [razorback16/openjev](https://github.com/razorback16/openjev) | 515 | Apache-2.0 | DiffusionGemma 26B-A4B | CUDA | — | — |
+| [Liuziyu77/Valen](https://github.com/Liuziyu77/Valen) | 474 | Apache-2.0 | 自训多模态 Jev-like 训练框架（含 vision） | CUDA | — | — |
+| [ekzhang/openjev-sglang](https://github.com/ekzhang/openjev-sglang) | 332 | **无** | Qwen3.6-35B-A3B（SGLang） | B200 级 | ✓ | — |
+| [Heman10x-NGU/openJev-verdict-2.0](https://github.com/Heman10x-NGU/openJev-verdict-2.0) | 291 | NOASSERTION | ModernBERT-base 151M + 双置信头 | CPU / WebGPU | — | ✓（ECE 1.44%，自测 receipt） |
+| [APUS-AI-Lab/fast-browser-use](https://github.com/APUS-AI-Lab/fast-browser-use) | 178 | MIT | Qwen3.5-9B / 35B-A3B | GPU / 无 GPU 的 Mac/PC | ✓ | — |
+| [togethercomputer/tev1](https://github.com/togethercomputer/tev1) | 165 | MIT | **Qwen3.5-4B LoRA 微调（Together AI）** | CUDA | — | — |
+| [allebee/jevk5](https://github.com/allebee/jevk5) | 123 | Apache-2.0 | open-weight 替代 | CUDA | — | — |
+| [bnsd55/jevmlx](https://github.com/bnsd55/jevmlx) | 69 | MIT | Qwen2.5-7B/3B/1.5B-4bit（MLX） | Apple Silicon / CPU | ✓ | **明确否认** |
+| [r-ms/mini-jev](https://github.com/r-ms/mini-jev) | 58 | MIT | Qwen3-4B-Instruct-2507（冻结） | CUDA / MPS | ✓ | **明确否认**（"不是校准概率"） |
+| [ikermoel/open-alternative-jev](https://github.com/ikermoel/open-alternative-jev) | 57 | Apache-2.0 | 任意 open-weights | CUDA | — | ✓（MMLU ECE 5.4%→2.1%） |
 
-**未列入但值得知道**：[`logan-markewich/jeff`](https://github.com/logan-markewich/jeff)（173★，把 GLiNER 用于决策）、`Heman10x-NGU/Verdict-open-jev`（48★）、`deepanwadhwa/OpenDecision`（42★，NLI 路线）、`fstandhartinger/jevbench`（31★，基准工具）、`Micha0827/snapjudge`（7★，MLX）、`NullPo-jp/PocketJev`（0★，Swift/iOS）。
+**未列入但值得知道**：[`logan-markewich/jeff`](https://github.com/logan-markewich/jeff)（261★，把 GLiNER 用于决策）、[`fstandhartinger/jevbench`](https://github.com/fstandhartinger/jevbench)（175★，基准工具）、`dzhng/jevgrep`（1,574★，代码检索 CLI，属应用而非决策模型）、`Heman10x-NGU/Verdict-open-jev`、`deepanwadhwa/OpenDecision`（57★，NLI 路线）、`Micha0827/snapjudge`（14★，MLX）、`NullPo-jp/PocketJev`（2★，Swift/iOS）。
 
 ### 3.3 值得逐个看的几个项目
 
-**`TheoLeeCJ/SemIf`（2,525★，MIT）——生态里最有代表性、也最克制的一个**
-- 原名 OpenJev，README 首行已改为 `# SemIf (formerly OpenJev)`（APUS 的 README 仍在引用旧名，属过期信息）。
+**`TheoLeeCJ/SemIf-OpenJev`（4,547★，MIT）——生态里最有代表性、也最克制的一个**
+- 原名 OpenJev，README 首行曾改为 `# SemIf (formerly OpenJev)`，**09-22 再次更名为 `SemIf-OpenJev`**（旧链接均可重定向；APUS 的 README 仍引用最早的 `TheoLeeCJ/openjev`，属过期信息）。
 - 两种模式：**direct**（直接读选项 token 的 logits）与 **shared**（state 只 prefill 一次，KV 复用到并行问题）。
 - **自测加速只有 5.21×**（1.023s vs 5.332s，RTX 3090），并明确声明"Jev 的数字读自 TypeSafe 公开记录，**我们没有跑真实 Jev endpoint**"；复现的是 102 行的接口范式，而非官方 711 行的完整实现。
 - 支持 CUDA / Apple MLX / **WebGPU（浏览器内跑）**，是少数能在纯浏览器演示的方案。
 
-**`r-ms/mini-jev`（35★）——证据链最规范，结论最不利**
+**`r-ms/mini-jev`（58★）——证据链最规范，结论最不利**
 - 有 `PREREG.md`（含 v1.1–v1.3 修正），27,900 条带 logits 的运行记录公开在 HuggingFace。
 - 结论：**"读字母 logits"与"语法约束生成 JSON"精度相当（Δ −0.22pp）**，加速仅 **4×（短文本）/ 1.4–2.4×（2048 token + 共享前缀）**。
 - 明确写"这些是归一化的候选分数，**不是校准概率**"。
 
-**`TianyuCodings/NanoJev`（1,522★）——唯一自训权重+数据全公开，且保留了打脸自己的那一行**
+**`TianyuCodings/NanoJev`（2,419★）——唯一自训权重+数据全公开，且保留了打脸自己的那一行**
 - Qwen3-0.6B + 自训 decision heads；ViZDoom Basic 上 **128/128，JEV 56/128**；但 Maze 任务 **4/10 反输给 JEV 的 7/10**，README 保留该行未删。
 
-**`jaredpalmer/kev`（1,167★，Apache-2.0）——局限性写得最诚实**
+**`jaredpalmer/kev`（7,749★，Apache-2.0）——局限性写得最诚实**
 - Qwen3.5-0.8B/4B/9B + LoRA（rank 16）；在 typed-decisions 上 JEV 准确率 0.857 vs kev-9B 0.812，但 **Brier 更优（0.211 vs 0.291）**——即 JEV 的**分布质量**更好。
 - 自曝：Apple Silicon 上因缺少 DeltaNet 的快速 kernel，**比上一代模型慢 4–7 倍**。
 
-**`APUS-AI-Lab/fast-browser-use`（35★，MIT）——媒体声量与实际影响力严重背离的样本**
-- 央广网、科技日报、新浪等报道其为"全球最早一批 / 国内首批 Jev 跨平台开源复现"，但仓库仅 **35★**，远低于同期社区项目；README 也没有独立的 Limitations 章节。
+**`APUS-AI-Lab/fast-browser-use`（178★，MIT）——媒体声量与实际影响力仍存在落差的样本**
+- 央广网、科技日报、新浪等报道其为"全球最早一批 / 国内首批 Jev 跨平台开源复现"，但截至 09-29 也仅 **178★**，远低于同期社区项目；README 也没有独立的 Limitations 章节。
 - 技术上是标准的 L1：把页面上可见可交互元素编号成候选动作集，由本地 Qwen3.5-9B 单次前向打分，单任务约 4 次打分；仅 `TYPE_TEXT` 类动作才真正生成 token。
 
-**`bespokelabsai/nimble`（1,217★）——目前唯一敢把 base model 与 JEV 并列的**
+**`bespokelabsai/nimble`（1,897★）——目前唯一敢把 base model 与 JEV 并列的**
 - 324 条 held-out 上：**Nimble-9B 90.1%**，其 base（Qwen3.5-9B）66.4%，**JEV 1.13.0 93.2%**——即"微调小模型能追平但没超过"。
 
-**`ikermoel/open-alternative-jev`（38★）——生态里最诚实的一份 benchmark**
+**`togethercomputer/tev1`（165★，MIT）——首家正规公司下场，但范式不同**
+- Together AI 官方仓库：把 Qwen3.5-4B 用 LoRA SFT 微调（37,840 条训练样本 + 4,568 条验证），**输入 2–24 个选项、输出单个答案字母**——是"约束生成式分类器"，**不输出各选项概率**，与 JEV"概率先行"的范式不同。
+- 权重公开（`togethercomputer/Tev1-4B-experimental`），附数据配方与训练示例（官方博客称"$17 训出自己的分类器"）；自报 880/1,000 主决策、300/300 策略迁移决策。
+
+**`ikermoel/open-alternative-jev`（57★）——生态里最诚实的一份 benchmark**
 - 唯一公开承认自己算错、并保留错误分析（"The correction that made this README honest"）的项目。
 
-**关于 APUS 的 `fast-browser-use` 与 `browser-use/jev-ultrafast` 的区别**：后者（12.6k★）是 **L0 客户端**，仍然调用云端 JEV，只是把 browser-use 的单步交互压缩成"operation + target 两个 head、一次往返"；它代表的是**用量优化**，不是本地替代。
+**关于 APUS 的 `fast-browser-use` 与 `browser-use/jev-ultrafast` 的区别**：后者（21.3k★）是 **L0 客户端**，仍然调用云端 JEV，只是把 browser-use 的单步交互压缩成"operation + target 两个 head、一次往返"；它代表的是**用量优化**，不是本地替代。
 
 ### 3.4 这些复现项目与官方声称的差距，主要来自三个工程事实
 
@@ -289,28 +301,30 @@
 
 ### 3.5 生态噪声警告（引用时必须注意）
 
-- GitHub 上 `q=jev` 约 **7,330** 个仓库，其中 9 月以后新建的约 **4,126** 个【GitHub API】；`topic:jev` 与 `topic:system-one` 各至少 55 个；**awesome-jev 类目录至少 18 个**，多数建于 5 天之内。
+- GitHub 上 `q=jev` 仓库 09-21 时约 **7,330** 个，**09-29 已达 14,028 个（8 天 +91%）**【GitHub API】；`topic:jev` 与 `topic:system-one` 各至少 55 个（09-21 口径）；**awesome-jev 类目录已超 20 个**（09-22 后新增 `kydlikebtc/awesome-jev`——自报收录 1,207 条资源，582★——与 `yibie/jev-engineering-zh` 中文翻译 128★ 等）。
 - 真正解释了机制、能跑的复现约 **20–25 个**；Reddit 上有人从 **287 个仓库里人工筛出 20 个**（该说法**未核实原文**）。
 - 最值得引用的一句社区警告来自 `yibie/awesome-jev` 作者本人：**"对同日批量提交的项目要格外警惕——数量不等于质量。"**
-- 生态目录站（`jevbest.com` 503 项、`madewithjev.com`）**都明确声明与 TypeSafe 无关**；其 star 快照**系统性偏低 18–39%**（例如 jev-ultrafast 记 9,291，实际 12,585）。引用生态规模时请注明口径，因为三种口径互不一致。
+- 生态目录站（`jevbest.com` 503 项、`madewithjev.com`，均为 09-21 口径）**都明确声明与 TypeSafe 无关**；其 star 快照**系统性偏低**（例如 jev-ultrafast 记 9,291，当日实际 12,585）。引用生态规模时请注明口径，因为三种口径互不一致。
 
 ---
 
 ## 4. 真正自训并开放权重的决策模型 / Genuinely Retrained Open-Weight Models
 
-> **EN** — Only one project in this ecosystem actually trained a decision model and published the weights: **Laya** (Apache-2.0, 5,060★, three checkpoints on HuggingFace, ~421M ModernBERT-class encoder with decision heads). It beats JEV's published numbers on typed-decisions (0.766 vs 0.727) and is ~7.8× faster, but every Laya accuracy figure is currently self-reported, its base checkpoints are near chance zero-shot, and it degrades badly above ~20 options. The rest of the "retrained" camp are LoRA/head adaptations of frozen models (L2). The 2025-03 RL non-autoregressive lineage is real (arXiv:2503.23303) but the promised weights/dataset cannot be found.
+> **EN** — Laya (Apache-2.0, **28k★**, three checkpoints on HuggingFace, ~421M ModernBERT-class encoder with decision heads) has become the dominant open-weight decision model: it beats JEV's published numbers on typed-decisions (0.766 vs 0.727) and is ~7.8× faster, but every Laya accuracy figure is currently self-reported, its base checkpoints are near chance zero-shot, and it degrades badly above ~20 options. On 2026-09-23 Together AI released **tev1** (Qwen3.5-4B LoRA, returns a single answer letter rather than option probabilities) — the first established company to ship an open-weight JEV-style model. The rest of the "retrained" camp are LoRA/head adaptations of frozen models (L2). The 2025-03 RL non-autoregressive lineage is real (arXiv:2503.23303) but the promised weights/dataset cannot be found.
 
-### 4.1 Laya：生态里唯一"自己训 + 开放权重"的决策模型家族
+### 4.1 Laya：生态里唯一"自己训 + 开放权重"的决策模型家族（截至 09-29 已是生态 star 第一）
 
 | 项 | 内容 |
 |---|---|
-| 仓库 | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya)，**5,060★ / 454 fork**，Apache-2.0，创建 2026-09-18 |
+| 仓库 | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya)，**28,058★ / 2,446 fork**（09-29 快照；09-21 时为 5,060★ / 454 fork，8 天 +454%），Apache-2.0，创建 2026-09-18 |
 | 作者 | Nandakishor Mukkunnoth（Convai Innovations，独立研究者；GitHub 上**没有** convaiinnovations 组织，主仓库挂在个人账号下） |
-| 权重 | [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya)（ModernBERT-large + 决策头，**421M**，英文，HF likes 1,204）、[laya-multilingual](https://huggingface.co/convaiinnovations/laya-multilingual)（mmBERT-base，322M，100+ 语言）、[laya-typed-decisions](https://huggingface.co/convaiinnovations/laya-typed-decisions)（微调版） |
-| 发行渠道 | PyPI `laya` 0.3.4、[HF Space 在线 demo](https://huggingface.co/spaces/convaiinnovations/laya-demo)、第三方 MLX 移植 [mizorewww/laya-mlx](https://github.com/mizorewww/laya-mlx)（**1,938★**，M3 Max 上 7.4–13.4 ms/问） |
+| 权重 | [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya)（ModernBERT-large + 决策头，**421M**，英文，HF likes **4,395**——09-21 时为 1,204）、[laya-multilingual](https://huggingface.co/convaiinnovations/laya-multilingual)（mmBERT-base，322M，100+ 语言，likes 323）、[laya-typed-decisions](https://huggingface.co/convaiinnovations/laya-typed-decisions)（微调版，likes 130） |
+| 发行渠道 | PyPI `laya` 0.3.4、[HF Space 在线 demo](https://huggingface.co/spaces/convaiinnovations/laya-demo)、第三方 MLX 移植 [mizorewww/laya-mlx](https://github.com/mizorewww/laya-mlx)（**6,604★**，09-21 时 1,938★，M3 Max 上 7.4–13.4 ms/问）、本地服务化工具 [ollaya-dev/ollaya](https://github.com/ollaya-dev/ollaya)（916★，把 Laya/decider/NLI/GLiClass 包装成 TypeSafe 兼容 API） |
 | 架构 | 双向编码器 + 在 `[MASK]` 位置对各选项打分再 softmax；**一次前向回答全部问题**，答案空间在请求时定义 |
 | 训练 | 自述 **RLCD**（以严格适当评分规则作奖励、GRPO 风格策略梯度），附 Kaggle 2×T4 微调 notebook；**训练数据未公开发布**（仅披露 AG News/BoolQ 在训练混合中） |
 | 文档 | 无独立论文，技术文档 = 模型卡 + `BENCHMARKS.md` |
+
+**生态位置的变化**：09-21 时 Laya 是"唯一自研开放权重的方案"；8 天后它已是全生态 star 第一（28k，超过 L0 客户端 `jev-ultrafast` 的 21.3k），且 09-23 起 Together AI 发布 open-weight 的 `tev1`（见 3.3 与 4.2）——**"公司级开源替代"开始出现**，这条赛道的竞争格局正在快速变化。
 
 **项目方自测基准（T4，对 JEV 官方公布数字）**：
 
@@ -344,6 +358,8 @@
 | [wfzyx/von](https://github.com/wfzyx/von) | ModernBERT-Large 395M + RLCD 后训练 | 自报 T=1.1692；README 内部两处数字矛盾 |
 | [Heman10x-NGU/openJev-verdict-2.0](https://github.com/Heman10x-NGU/openJev-verdict-2.0) | ModernBERT-base 151M + 双置信头 | 自报 ECE 1.44%（仅项目方 test receipt） |
 | [Mapika/decider](https://github.com/Mapika/decider) | 含 calibration-aware RL | 未核实独立复跑 |
+| [togethercomputer/tev1](https://github.com/togethercomputer/tev1) | Qwen3.5-4B LoRA SFT（37,840 样本），**Together AI 官方** | 自报 880/1,000 主决策、300/300 策略迁移；**只输出答案字母、不给选项概率**，范式与 JEV 不同 |
+| [allebee/jevk5](https://github.com/allebee/jevk5) | 自称 open-weight 替代（Apache-2.0） | 123★（09-29）；细节与 benchmark 未核实 |
 
 这些方案值得参考，但都没有第三方复跑，且底座与任务各不相同，**不能横向比较**。
 
@@ -389,7 +405,7 @@
 3. **验校准**：在你的数据上算 ECE 与可靠性曲线；必要时按 (问题类型 × 选项数) 分桶重拟温度参数。
 4. **给失败模式留降级路径**：算术、日期、间接推理、长 state 干扰这四类别交给它。
 5. **锁版本**：官方别名会漂移，生产环境 pin `jev-1.13.0` 这类版本化 ID。
-6. **数据合规**：确认 `state` 里是否会带入个人信息；官方是否有零数据保留需自行确认（本报告**未找到**相关信息）。
+6. **数据合规**：确认 `state` 里是否会带入个人信息；官方已于 09-29 核实**不训练客户请求/响应**，但零数据保留（ZDR）**仅企业版**，非企业版请自行评估。
 7. **选开源方案时先看三件事**：许可证（见 6.6）、最近提交时间、README 里有没有 Limitations 章节。
 
 ---
@@ -407,7 +423,7 @@
 ### 6.2 数据合规与地区
 
 - 央广网报道"尚未对中国大陆地区开放"【第三方】；而官方文档与条款中**未见地区限制条款**（已 grep 核实）。落地前请自行与官方确认。
-- 该服务是**纯云端**，`state` 必然出网。是否有零数据保留（ZDR）、是否默认用于训练，**本报告未找到可靠信息**。
+- 该服务是**纯云端**，`state` 必然出网。官方 2026-09-29 的 Models 页明确："**Jev is not trained on customer requests or responses**"；DPA、隐私政策与**零数据保留（ZDR）仅企业版**提供（<https://docs.typesafe.ai/models>）——非企业版的数据保留策略仍需自行与官方确认。
 - 中文/多语言能力非其强项（官方自述 + 独立实测均支持该结论）。
 
 ### 6.3 官方数字不可直接用于容量规划
@@ -435,15 +451,15 @@
 
 ### 6.6 开源侧的许可证与命名风险
 
-- **无许可证（license = null，采用有法律风险）**：`yibie/awesome-jev`、`featherless-ai/simple-jev`、`ekzhang/openjev-sglang`、`bespokelabsai/nimble`、`SAGAR-TAMANG/sarvam-jev`、`SiliconLabAI/OpenJev` 等。
-- **NOASSERTION**（仓库有 LICENSE 文件但 GitHub 无法识别）：`Heman10x-NGU/openJev-verdict-2.0`、`rorshopping/jev-on-a-laptop` 等。
+- **无许可证（license = null，采用有法律风险，09-29 核实）**：`yibie/awesome-jev`（已涨到 **1,950★**）、`bespokelabsai/nimble`（**1,897★**）、`ekzhang/openjev-sglang`、`SAGAR-TAMANG/sarvam-jev`、`SiliconLabAI/OpenJev` 等。**好消息**：`featherless-ai/simple-jev` 已于 09-28 补为 Apache-2.0。
+- **NOASSERTION**（仓库有 LICENSE 文件但 GitHub 无法识别）：`Heman10x-NGU/openJev-verdict-2.0`、`rorshopping/jev-on-a-laptop`、`kydlikebtc/awesome-jev`、`yibie/jev-engineering-zh` 等。
 - **重新分发底座模型权重的合规性**：Qwen3.5-4B 本身是 Apache-2.0，因此主流复现项目的再分发**通常没有冲突**；真正明显的缺口是 **NanoJev 的 HuggingFace 权重仓库完全未声明许可证**。不要照搬"复现项目必有许可证问题"的流行说法。
-- **命名误导**：把复现项目直接叫 "JEV" 会让人误以为拿到官方模型。正面例子是 `TheoLeeCJ/SemIf` 主动改名并在 README 声明"复现的是接口模式，不是 JEV 未公开的模型与训练，与 TypeSafe 无关"。
+- **命名误导**：把复现项目直接叫 "JEV" 会让人误以为拿到官方模型。正面例子是 `TheoLeeCJ/SemIf-OpenJev` 主动改名并在 README 声明"复现的是接口模式，不是 JEV 未公开的模型与训练，与 TypeSafe 无关"。
 
 ### 6.7 生态存在明显注水
 
-- 9 月以后新建的 JEV 相关仓库约 **4,126** 个，真正解释机制的约 **20–25** 个。
-- `awesome-jev` 类目录至少 18 个，多数建于 5 天内；目录站的 star 快照**系统性偏低 18–39%**。
+- GitHub `q=jev` 仓库 09-21 约 **7,330** 个 → 09-29 约 **14,028** 个（8 天 +91%），真正解释机制的仍约 **20–25** 个。
+- `awesome-jev` 类目录已超 **20** 个，多数建于发布首周；目录站的 star 快照**系统性偏低**。
 - 有仓库 README **内部自相矛盾**（如 `wfzyx/von` 的 T 值与训练集规模各写两版），引用其数字前请交叉核对。
 - 引用任何复现项目的 benchmark 前请记住：**本报告没有对任何仓库做实际跑测**，这些数字全部是项目方自报。
 
@@ -456,17 +472,21 @@
 
 ## 7. 附录：核实方法、未核实清单与参考链接 / Appendix
 
-> **EN** — Repo metadata was pulled live with `gh api` on 2026-09-21; official documentation pages, the official eval site, and launch post were fetched and parsed directly (raw captures live in `research/`). Numbers that only exist in secondary reporting are flagged as unverified below. Everything here is reproducible with the commands in 7.4.
+> **EN** — Repo metadata was pulled live with `gh api` on 2026-09-21 and refreshed on 2026-09-29; official documentation pages, the official eval site, and launch post were fetched and parsed directly (raw captures live in `research/`). Numbers that only exist in secondary reporting are flagged as unverified below. Everything here is reproducible with the commands in 7.4.
 
 ### 7.1 本仓库内容
 
 ```
-README.md                        # 本报告正文
+README.md                        # 本报告正文（v1.1）
+LICENSE                          # CC BY 4.0（报告文本许可）
+CITATION.cff                     # 引用格式
+CHANGELOG.md                     # 版本更新记录
 research/jev-official.md         # 官方事实与 API 契约的原始核实记录（含逐条来源）
 research/os-reproductions.md     # 开源复现项目逐个核实记录（含 gh api 原始输出）
 research/ecosystem-benchmarks.md # 第三方评测、生态目录、风险分析的原始记录
+research/os-decision-models.md   # Laya 与自训开放权重模型的核实记录
 research/laya-github-readme.md   # Laya 官方 README 快照（其 benchmark 与局限）
-data/open-source-projects.csv    # 项目元数据表（star/许可证/底座模型等）
+data/open-source-projects.csv    # 项目元数据表（star/许可证/底座模型等，09-29 快照，38 行）
 ```
 
 ### 7.2 证据分级说明
@@ -490,15 +510,16 @@ data/open-source-projects.csv    # 项目元数据表（star/许可证/底座模
 | `wfzyx/von` 的 T 值、训练集规模、引用的 arXiv 条目 | 仓库内自相矛盾 / arXiv 条目**未核实存在** |
 | `Heman10x-NGU/openJev-verdict-2.0` 的 ECE 1.44%、NanoJev/kev/nimble 的全部 benchmark | 项目方自测，未见第三方复跑 |
 | APUS"全球最早一批 / 国内首批" | 媒体 + 项目方口径，无法独立核实 |
-| 生态规模（7,330 / 4,126 / 503 / 386 / 195 …） | 三种口径互不一致，引用需注明来源 |
+| 生态规模（7,330→**14,028** / 503 / 386 / 195 …） | 三种口径互不一致，引用需注明来源 |
 | 所有复现项目的加速倍数 | **本报告未对任何仓库做实际跑测** |
-| 官方是否有零数据保留、是否默认用于训练 | 未找到信息 |
+| ~~官方是否有零数据保留、是否默认用于训练~~ | **已于 2026-09-29 在官方 Models 页核实**：不训练客户请求/响应；ZDR 仅企业版 |
+| `togethercomputer/tev1`、`allebee/jevk5`、`Liuziyu77/Valen` 的 benchmark 与细节 | 09-23 后新出现，**仅取元数据与 README，未做跑测** |
 
 ### 7.4 如何复现本报告的数据
 
 ```bash
 # 1) 拉取任意仓库的当日元数据
-gh api repos/TheoLeeCJ/SemIf \
+gh api repos/TheoLeeCJ/SemIf-OpenJev \
   --jq '{full_name,stargazers_count,forks_count,open_issues_count,
          license:.license.spdx_id,created_at,pushed_at,description}'
 
@@ -507,7 +528,7 @@ gh api "search/repositories?q=jev&sort=stars&per_page=50" \
   --jq '.items[]|{full_name,stargazers_count,license:.license.spdx_id,html_url}'
 
 # 3) 读仓库 README
-gh api repos/TheoLeeCJ/SemIf/contents/README.md --jq .content | base64 -d
+gh api repos/TheoLeeCJ/SemIf-OpenJev/contents/README.md --jq .content | base64 -d
 
 # 4) 官方文档与评测页
 curl -s https://docs.typesafe.ai/models
@@ -527,7 +548,7 @@ curl -s https://evals.typesafe.ai/ | sed 's/<[^>]*>/ /g'
 
 **开源项目**
 - Laya <https://github.com/NandhaKishorM/laya>（权重 <https://huggingface.co/convaiinnovations/laya>，MLX 移植 `mizorewww/laya-mlx`）
-- SemIf（原 OpenJev）<https://github.com/TheoLeeCJ/SemIf> · mini-jev <https://github.com/r-ms/mini-jev> · jevlike <https://github.com/vinnylarouge/jevlike> · jevmlx <https://github.com/bnsd55/jevmlx> · NanoJev <https://github.com/TianyuCodings/NanoJev> · kev <https://github.com/jaredpalmer/kev> · nimble <https://github.com/bespokelabsai/nimble> · von <https://github.com/wfzyx/von> · openjev-sglang <https://github.com/ekzhang/openjev-sglang> · simple-jev <https://github.com/featherless-ai/simple-jev> · jev-ultrafast <https://github.com/browser-use/jev-ultrafast> · fast-browser-use <https://github.com/APUS-AI-Lab/fast-browser-use>
+- SemIf-OpenJev（原 OpenJev）<https://github.com/TheoLeeCJ/SemIf-OpenJev> · mini-jev <https://github.com/r-ms/mini-jev> · jevlike <https://github.com/vinnylarouge/jevlike> · jevmlx <https://github.com/bnsd55/jevmlx> · NanoJev <https://github.com/TianyuCodings/NanoJev> · kev <https://github.com/jaredpalmer/kev> · nimble <https://github.com/bespokelabsai/nimble> · von <https://github.com/wfzyx/von> · openjev-sglang <https://github.com/ekzhang/openjev-sglang> · simple-jev <https://github.com/featherless-ai/simple-jev> · jev-ultrafast <https://github.com/browser-use/jev-ultrafast> · fast-browser-use <https://github.com/APUS-AI-Lab/fast-browser-use> · tev1（Together AI）<https://github.com/togethercomputer/tev1> · ollaya <https://github.com/ollaya-dev/ollaya> · Valen <https://github.com/Liuziyu77/Valen>
 - 生态目录：<https://jevbest.com/zh/> · <https://madewithjev.com/github-repos> · <https://github.com/logicrw/awesome-jev-projects> · <https://github.com/yibie/awesome-jev>
 
 **对比图说明**：本报告不提供"谁最快"的单一结论表，因为官方口径互相矛盾、第三方测试任务各不相同、且所有开源项目的数字均未经独立复跑。做选型时请以**你自己数据上的实测**为准。
