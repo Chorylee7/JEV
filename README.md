@@ -7,23 +7,16 @@
 **JEV Research Report: What JEV really is — and the open-source alternatives**
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.2-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.3-blue)](CHANGELOG.md)
 [![Data Snapshot](https://img.shields.io/badge/data%20snapshot-2026--09--29-orange)](CHANGELOG.md)
 [![GitHub Stars](https://img.shields.io/github/stars/Chorylee7/JEV?style=social)](https://github.com/Chorylee7/JEV/stargazers)
 
-[⚡ 快速参考卡](#quick-ref) · [📋 TL;DR](#tldr) · [🌐 English Report](REPORT-EN.md) · [🧪 评估脚手架](eval/) · [📜 更新日志](CHANGELOG.md)
+[⚡ 快速参考卡](#quick-ref) · [📋 导读](#tldr) · [🌐 English Report](REPORT-EN.md) · [🧪 评估脚手架](eval/) · [📜 更新日志](CHANGELOG.md)
 
 </div>
 
-| | |
-|---|---|
-| 核实日期 / Verified | 2026-09-21（v1.0 初版）；star/许可证/生态数据于 **2026-09-29**（v1.1）刷新，见 [CHANGELOG.md](CHANGELOG.md) |
-| 数据来源 / Sources | 官方文档、官方评测页、GitHub API（`gh api` 当日快照）、第三方独立评测、中文媒体 |
-| 证据分级 / Evidence tags | 【官方】官方发布 · 【第三方】独立测试/媒体 · 【项目方自测】仓库作者自报 · 【未核实】未能找到一手来源 |
-| 许可证 / License | 本报告文本采用 [CC BY 4.0](LICENSE)；引用格式见 [CITATION.cff](CITATION.cff) |
-| 重要提醒 / Caveat | 报告主体结论基于 2026-09-21 的核实；star/许可证/生态规模数字为 2026-09-29 快照，会分钟级漂移；所有 benchmark 数字**除注明外均为项目方或厂商自报，本报告未做任何实际跑测**。 |
-
----
+> **怎么读**：结论先行——只想知道答案，看下面的「快速参考卡」就够。每个数字都带证据等级：**【官方】**官方发布 · **【第三方】**独立测试/媒体 · **【项目方自测】**仓库作者自报 · **【未核实】**无一手来源。全英文版见 [REPORT-EN.md](REPORT-EN.md)。
+> **口径**：结论基于 2026-09-21 的核实；star/许可证/生态规模为 2026-09-29 快照（变更见 [CHANGELOG](CHANGELOG.md)）；**所有 benchmark 数字除注明外均为项目方或厂商自报，本报告未做任何实际跑测**。
 
 ## ⚡ 快速参考卡 / Quick Reference Card <a id="quick-ref"></a>
 
@@ -45,143 +38,99 @@
 | 开源首选 | **Laya**（Apache-2.0，28.1k★，T4 上 33ms，微调后 0.766 > JEV 0.727；**>20 个选项明显退化**） | 【项目方自测】 |
 | 别用的场景 | 高基数分类、中文重负载、数值阈值判断、要求逻辑一致的概率、>100Hz 控制回路 | 综合 |
 
----
+## 📋 这份报告回答四个问题 <a id="tldr"></a>
 
-## 📋 摘要 / TL;DR <a id="tldr"></a>
+1. **JEV 是什么？** 一个只做判断、不写文字的托管决策模型 → [§1](#s1-what-is-jev)
+2. **官方宣称的"快 200×、省 400×"可信吗？** 官方口径自相矛盾；独立实测 5–25× 速度、9–580× 成本 → [§2](#s2-claims-vs-evidence)
+3. **有哪些开源替代？** 接口复现约 20+ 个；真正自研开放权重的是 Laya（28k★）和刚下场的 Together AI `tev1` → [§3](#s3-landscape) · [§4](#s4-open-weight-models)
+4. **我该不该用、怎么用？** 按场景决策表 + 7 条上线检查清单 + 8 条风险清单 → [§5](#s5-selection-guide) · [§6](#s6-risks)
 
-> **EN** — JEV is not a chat model. It is a hosted "System One" decision model from TypeSafe AI (San Francisco, founded 2024, $40M seed led by DCVC, released 2026-09-15). You send a `state` plus typed questions; it returns structured answers with probabilities and never writes free text. Weights are closed; API-only. Official headline claims (193.6× faster / 444.6× cheaper) are contradicted by other numbers on TypeSafe's own pages (40×–200×, 20×–200×, 40×–1000×), and independent tests land between 5×–25× on speed and 8.6×–580× on cost. Open source split into two camps: **interface reproductions** (read option-token logits from a frozen LLM, skip autoregressive decoding) and **genuinely retrained open-weight decision models** (Laya is the standout: Apache-2.0, ModernBERT-class, ~33 ms, post-finetune 0.766 vs JEV's 0.727 on typed-decisions — but it collapses on questions with more than ~20 options).
-
-- **JEV 不是聊天模型，而是"决策模型"**：输入程序状态 + 若干**类型化问题**，一次调用返回带概率的结构化判定，不生成任何自由文本。属于 TypeSafe AI（旧金山，2024 年成立），2026-09-15 发布，种子轮 4000 万美元（DCVC 领投）【第三方+官方新闻稿】。
-- **只有三种原语**：`noul`（是非题，返回 0–1 概率）、`choice`（最多 255 个选项的单选）、`score`（2–10 级有序评分）。**没有** ranking / span 类型，也**不支持流式**。
-- **定价与规格**：$0.042 / 百万 input token（output 免费）、限速 250k tokens/秒 + 1,200 请求/分钟、单请求 64k 上下文、**输入仅文本**（不支持图像/音频/视频）、权重未开源且不做 per-customer 微调。
-- **官方数字自相矛盾**：首页写 193.6× 快 / 444.6× 便宜，发布博文写 40×–200×，非公开 onboarding 页写 20×–200× 与 40×–1,000×。第三方独立实测：速度 **4.8×–25×**，成本 **8.6×–580×**，没有一家复现出 444.6×。
-- **效果高度任务依赖**：官方自测四个工作流里，JEV 平均 67.8%（落后 GPT-5.6 Sol 74.1%），其中**发票处理 61.8% 在 9 个模型里排第 8**（仅胜 Haiku 4.5）——这是"JEV 不是通解"最硬的证据，且出自官方自己的评测页。
-- **官方主动披露的失败模式**：算术与计数、日期比较、间接推理、大 state 干扰、对抗内容等 9 类（`jaggedness` 页）；并承认**同一个问题与其否定答案的概率之和可以 ≠ 1**（官方示例 0.72 + 0.47 = 1.19）。
-- **开源生态分两派**（star 为 2026-09-29 快照）：① **接口复现**——把现成开源模型冻结，只读候选答案 token 的 logits 并做受限 softmax，跳过自回归解码（`browser-use/jev-ultrafast` 21.3k★、SemIf-OpenJev 4.5k★、kev 7.7k★、NanoJev 2.4k★ 等）；② **真正自训并开放权重**——Laya（Apache-2.0，**28.1k★**、HF likes 4.4k，三个 checkpoint，T4 上单问 32.8–39.5 ms）已成为该方向的**绝对主导者**，也是唯一在公开基准上正面压过 JEV 的开源方案，但它的 base checkpoint 在 zero-shot 下**接近瞎猜**，且 20 个以上选项的场景明显退化；2026-09-23 起 Together AI 发布 open-weight 的 `tev1`（Qwen3.5-4B LoRA 微调，输出单字母答案），是**首家正规公司下场**。
-- **选型结论**：把 JEV 当"免训练的快速决策层"是合理的；但把官方 200×/400× 当作规划前提是有风险的。生产环境至少要实测三件事：**你任务上的准确率、弃权率（实测 30% 弃权即可把 76× 成本优势压到 3.2×）、概率在你数据上是否真的校准**。长期自托管优先考虑 Laya（配合微调与温度拟合）或"小模型 + 严格 JSON schema"，而不是直接套用任何复现项目的宣传数字。
-
-**目录 / Contents**
+<details>
+<summary>📑 完整目录（点击展开）</summary>
 
 1. [JEV 是什么](#s1-what-is-jev)
-2. [官方主张 vs 独立验证](#s2-claims-vs-evidence)
+2. [实测表现：官方宣称 vs 独立验证](#s2-claims-vs-evidence)
 3. [开源生态全景](#s3-landscape)
 4. [真正自训并开放权重的决策模型](#s4-open-weight-models)
 5. [选型建议](#s5-selection-guide)
-6. [风险与局限](#s6-risks)
+6. [风险清单](#s6-risks)
 7. [附录：核实方法、未核实清单与参考链接](#s7-appendix)
+
+</details>
 
 ---
 
 ## 🤖 1. JEV 是什么 / What is JEV <a id="s1-what-is-jev"></a>
 
-> **EN** — JEV is TypeSafe AI's "System One" model: a hosted, text-in/structured-out decision service, not a generative LLM. Its API is a single endpoint (`POST /v1/systemone`) taking `state` + `questions` and returning typed answers. Only three question primitives exist. It cannot write text, cannot explain itself, has no world knowledge beyond the supplied state, and is English-first. Weights are not published and no paper exists.
+> *EN — JEV is TypeSafe AI's hosted "System One" decision model: typed questions in, structured answers with probabilities out, never free text.*
 
-### 1.1 一句话定义
+**一句话**：JEV 是 TypeSafe AI（旧金山，2024 年成立；创始人 Diogo Almeida 为 InstructGPT 论文作者之一；4000 万美元种子轮、DCVC 领投）于 **2026-09-15** 发布的 "System One" 决策模型——**它只做判断，不写任何文字**：你传入程序状态（`state`）和若干类型化问题，它一次调用返回带概率的结构化答案。权重闭源、仅云端 API。
 
-官方对 System One 的定义是：模型**不写回复、不产代码、不生成推理过程**，只在调用方给定的结构化模式里返回带概率的判定【官方：<https://docs.typesafe.ai/concepts/system-one>】。因此它和"用 LLM 输出 JSON"在**接口形态**上相似，区别在于：
+### 1.1 三种原语 = 它的全部能力边界
 
-| 维度 | 传统 LLM | JEV（System One） |
-|---|---|---|
-| 输出 | 自回归生成 token 流 | 一次前向/并行计算，直接给结构化答案 |
-| 是否可解释 | 可以生成 reasoning | **不生成任何解释性文本** |
-| 世界知识 | 有 | **无**，只了解你传入的 `state` |
-| 流式 | 支持 | **不支持**（Pydantic AI 集成文档原话："nothing to stream"）|
-| 概率 | 需自取 logits | 原生返回 `probabilities` / `confidence` |
-| 权重 | 开源可选 | **闭源**，仅托管 API |
+| 原语 | 语义 | 返回 | 例子 |
+|---|---|---|---|
+| `noul` | 是/否 | 单个 0–1 概率（**无 confidence 字段**） | "这条消息是否紧急？" |
+| `choice` | 单选（**≤255 个选项**） | 选项 + `probabilities`（和为 1）+ `confidence` | "该路由到哪个团队？" |
+| `score` | 有序评分（**2–10 级**） | 分值（可落在级别之间，如 1.05）+ 分布 + `confidence` | "客户愤怒程度 1–5？" |
 
-### 1.2 公司与时间线
+注意：**没有 ranking、span 类型**；`boolean` 只是部分渠道（如 Vercel）对 `noul` 的别名。
 
-| 项 | 内容 | 证据 |
-|---|---|---|
-| 公司 | TypeSafe AI，旧金山（Embarcadero 附近），2024 年成立，全员 in-person 五天 | 【官方】<https://typesafe.ai/team> |
-| 创始人 | Diogo Almeida（CEO，前 OpenAI/Google Brain，InstructGPT 论文作者之一）；Erik Gafni（CTO）；Sasha Sheng（COO，前 Meta/FAIR） | 【官方】发布博文 + 媒体 |
-| 融资 | 4000 万美元种子轮，DCVC 领投（Business Wire 2026-09-15 公告；原文抓取 403，全文**未核实**） | 【官方新闻稿】`businesswire.com/news/home/20260915525333/en/` |
-| 估值 | 报道称约 2 亿美元 | 【第三方，单一来源，**未核实**】 |
-| 发布时间 | 官方博文时间戳 **2026-09-15**；部分媒体记 9/14 或 9/16（报道日） | 【官方】<https://typesafe.ai/blog/introducing-system-one-models-and-jev> |
-| 当前版本 | `jev-1.13.0`，别名 `jev-latest` / `jev-preview` 均指向它 | 【官方】<https://docs.typesafe.ai/models> |
-| 官方附带产物 | `github.com/typesafe-ai/skills`（Agent Skill，MIT，1,259★，**创建于 2026-08-24，早于公测**） | 【GitHub API】 |
+### 1.2 一次调用长什么样
 
-### 1.3 API 契约（字段级）
-
-端点：`POST https://api.typesafe.ai/v1/systemone`【官方：<https://docs.typesafe.ai/api>】
-
-请求体三个字段：
+端点 `POST https://api.typesafe.ai/v1/systemone`；一个请求里的所有问题对同一 `state` **并行评估**（官方："加问题几乎不增加响应时间"）：
 
 ```jsonc
+// 请求（节选）
 {
-  "state": "……你的程序状态：一段文本、一个 JSON 对象或文本数组……",
+  "state": "Help! My payouts have been failing for 3 days.",
   "model": "jev-latest",
   "questions": {
-    "risk_level": { "type": "choice", "options": ["low", "medium", "high"] },
-    "is_phishing":  { "type": "noul" },
-    "quality":      { "type": "score", "levels": ["terrible", "poor", "ok", "good", "great"] }
+    "route":  { "type": "choice", "instructions": "Which team should handle this?",
+                "criteria": {"billing": "Payments, invoicing, refunds", "technical": "Bugs, outages"} },
+    "urgent": { "type": "noul", "instructions": "Does this convey urgency?" }
   }
 }
-```
-
-关键设计：`questions` 是**由你命名的 map**——key 只用于对齐请求与响应，**不会发送给模型**；同一个 `state` 上的所有问题被**并行、独立**评估，官方原话是"Adding questions barely changes the response time"【官方】。
-
-响应体：
-
-```jsonc
-{
-  "model": "jev-1.13.0",
+// 响应（节选）
+{ "model": "jev-1.13.0",
   "answers": {
-    "risk_level": { "choice": "high", "probabilities": {"low":0.02,"medium":0.11,"high":0.87}, "confidence": 0.87 },
-    "is_phishing": { "noul": 0.994 },
-    "quality":     { "score": 3.4, "legend": ["terrible","poor","ok","good","great"],
-                     "probabilities": {"terrible":0.01,"poor":0.06,"ok":0.21,"good":0.42,"great":0.30}, "confidence": 0.42 }
+    "route":  { "choice": "technical", "probabilities": {"billing": 0.12, "technical": 0.88}, "confidence": 0.81 },
+    "urgent": { "noul": 0.95 }
   },
-  "usage": { "input_tokens": 412, "output_tokens": 0 }
-}
+  "usage": { "input_tokens": 318, "output_tokens": 34 } }
 ```
 
-**三种原语（官方就是全部，没有第四种）**：
+`questions` 的 key 由你命名、答案按同 key 返回、**key 不发给模型**；`instructions` / `criteria` 接受结构化 JSON。SDK：Python `typesafe-sdk`、TS `@typesafe-ai/sdk`；官方 Agent Skill 见 [typesafe-ai/skills](https://github.com/typesafe-ai/skills)（MIT，2,392★）。
 
-| 原语 | 语义 | 返回 | 适用场景（官方举例） |
-|---|---|---|---|
-| `noul` | 是非题 | 单个 0–1 概率，**没有 `confidence` 字段** | 钓鱼检测、垃圾邮件、越狱检测、流失风险 |
-| `choice` | 单选，**最多 255 个选项** | `choice` + `probabilities`（和为 1）+ `confidence` | 意图分类、路由、标签 |
-| `score` | 有序评分，**2–10 级** | `score`（**可以是级别之间的值**，如 `1.05`）+ `legend` + `probabilities` + `confidence` | 严重性、质量、紧急度 |
+### 1.3 规格、价格与硬限制
 
-> 常见误解：**JEV 没有 `ranking` 和 `span` 类型**；`boolean` 只是某些渠道（如 Vercel）对 `noul` 的别名。
+| 项 | 值 | 证据 |
+|---|---|---|
+| 价格 | $0.042 / 百万 input token（**output 免费**）；官方自认"无法证明它没有被补贴" | 【官方】 |
+| 延迟 | 官方 70–500ms；独立实测 p50 314ms / p95 399ms | 【官方/第三方】 |
+| 限速 | 250k tokens/秒 + 1,200 请求/分钟，**声明动态调整、可不另行通知** | 【官方】 |
+| 上下文 | 请求 64k；`state` + 最长单问 ≤ 32k | 【官方】 |
+| 输入模态 | **仅文本**（图像/音频/视频不支持，官方注明 "yet"）；**不支持流式** | 【官方】 |
+| 语言 | 英语最佳，CJK "能用但不同等" | 【官方】 |
+| 权重/微调 | 闭源；所有账号同一套权重，无 per-customer 微调 | 【官方】 |
+| 版本 | `jev-1.13.0`（09-29 核实，无 preview 构建）；生产环境应 pin 版本 ID | 【官方】 |
+| 数据政策 | 不训练客户请求/响应；**ZDR 仅企业版** | 【官方 09-29】 |
+| 地区 | 央广网称"未对中国大陆开放"；官方条款**无地区限制明文**，以官方口径论未证实 | 【第三方】 |
 
-### 1.4 定价、限速与硬限制【官方：<https://docs.typesafe.ai/models>】
+### 1.4 官方自己承认的短板（jaggedness 页）
 
-- 价格：**$42 / 十亿 input token = $0.042 / 百万**，**output token 免费**（因为不生成 token）。
-- 限速：250,000 tokens/秒、1,200 请求/分钟；官方注明"动态调整、可不另行通知"。
-- 上下文：单请求 64k，其中 `state` + 最长单条问题 ≤ 32k。
-- 输入模态：**仅文本**（string / JSON object / 文本数组）。不支持图像、音频、视频。
-- 语言：英语最佳；官方承认"CJK 等其他语言能用，但效果并不同等"。
-- 权重与微调：**闭源**；官方明确"所有账号共用同一套权重，不做 per-customer 微调/LoRA"。
-- 价格可持续性：官方自己写了一句罕见的坦白——"**我们无法证明它没有被补贴**"。
-- 地区可用性：央广网 2026-09-20 报道"该服务尚未向中国大陆地区开放"【第三方】；但官方文档与服务条款中**未见任何地区/出口管制条款**（本次已 grep 核实），因此这条**以官方口径论仍属未证实**。
-- 数据政策（**2026-09-29 核实**）：官方 Models 页明确"**Jev is not trained on customer requests or responses**"；DPA、隐私政策与零数据保留（ZDR）**仅面向企业版**（<https://docs.typesafe.ai/models>）。
-- 版本状态（**2026-09-29 核实**）：仍为 `jev-1.13.0`，`jev-preview` 与 `jev-latest` 当前指向同一版本、无 preview 构建；限速仍声明"动态调整、可不另行通知"。
+官方单列一页列出 9 类失败模式【官方】：**字面理解 · 算术与计数 · 日期比较 · 间接推理 · 大 state 干扰 · 对抗内容 · instructions 与 criteria 矛盾 · 结构不变量 · 生成任务**。另有两个反直觉点：**问题与其否定的概率之和可以 ≠ 1**（官方示例 0.72 + 0.47 = 1.19）；`score` 数值校准弱，不能插值还原精确数字。
 
-### 1.5 官方承认的能力天花板
+### 1.5 两个好玩的官方 demo
 
-官方专门有一页 `Jev 1.13 jaggedness`【官方：<https://docs.typesafe.ai/model-jaggedness/jev-1.13>】列出 9 类失败模式，其中几条对工程决策影响很大：
-
-- **字面理解**：不会按常识补全你的意图；
-- **算术与计数**：明确不可靠；
-- **日期/时间比较**、**多跳间接推理**：弱；
-- **大 state 里塞满无关细节**：会被干扰；
-- **对抗性内容**、**instructions 与 criteria 互相矛盾**：会被带偏；
-- **结构不变量**：不保证满足"总数守恒"这类约束；
-- **生成类任务**：直接不支持；
-- **概率不是逻辑一致的概率**：同一问题与其否定的概率之和**不必等于 1**（官方示例 0.72 + 0.47 = 1.19）；`score` 的数值校准很弱，**不能**通过插值还原精确数字。
-
-### 1.6 有趣的官方 Demo
-
-- **Doom**：官方博文称以约 **10 queries/秒**、约 **$7/小时** 的成本驱动；输入是**文字化的结构化游戏状态，不是画面**，官方还自嘲"一个非 AI 的 Doom bot 能玩得更好"。
-- **Wikiracing**：每一步在数百至数千个链接中做 `choice`；链接数超过 255 时改用"两阶段评分 + 选择"绕开上限。
+- **Doom**：喂文字化的结构化游戏状态（**不看画面**），约 10 queries/秒、$7/小时；官方自嘲"非 AI 的 Doom bot 玩得更好"。
+- **Wikiracing**：每步在数百至数千个链接中做 `choice`；超过 255 个选项时走"两阶段评分 + 选择"。
 
 ---
 
-## 📊 2. 官方主张 vs 独立验证 / Official Claims vs Independent Evidence <a id="s2-claims-vs-evidence"></a>
+## 📊 2. 实测表现：官方宣称 vs 独立验证 <a id="s2-claims-vs-evidence"></a>
 
-> **EN** — TypeSafe's marketing numbers vary by page (193.6×/444.6× on the homepage, 40×–200× in the launch post, 20×–200× and 40×–1000× in the gated onboarding page). Eight independent tests published between 09-15 and 09-19 land at 4.8×–25× on latency and 8.6×–580× on cost. Accuracy is highly workflow-dependent: JEV ranks 8th of 9 on the invoice-processing workflow in TypeSafe's *own* eval page. The two most useful independent findings are that a 30% abstain rate collapses the cost advantage from 76× to 3.2×, and that on tasks where the model cannot know the answer it is severely overconfident (ECE 0.107 vs a 0.024 noise floor).
+> *EN — The vendor's headline multipliers contradict each other across its own pages; independent tests land at 4.8×–25× speed and 8.6×–580× cost; accuracy is highly task-dependent.*
 
 ### 2.1 速度与成本：官方自己就有四个版本
 
@@ -189,78 +138,59 @@
 |---|---|---|---|
 | TypeSafe 首页 | 193.6× | 444.6× | 【官方】 |
 | TypeSafe 发布博文 | 40×–200× | 未公布 | 【官方】 |
-| TypeSafe early-access onboarding（需登录） | 20×–200× | **40×–1,000×** | 【官方】 |
-| 按官方 evals 表手算 | 约 25×–95× | 76×–440× | 【第三方推算】 |
-| Every | 约 25× | 约 580× | 【第三方独立】 |
-| Near Here | — | 8.6×（vs Mistral Small 4）/ 58×（vs Gemini Flash-Lite） | 【第三方独立】 |
-| gemanor | 4.8×–5.7× 时延 | 45× / 274× | 【第三方独立】 |
-| 4esv/jev-eval | 5× | 41×–50× | 【第三方独立】 |
-| 硅星人（中文实测） | 0.73–0.75s vs DeepSeek V4 Flash 5.58s | 50 题 $0.002 | 【第三方独立】 |
-| Capital & Compute | p50 314 ms / p95 399 ms（复现官方 70–500ms 区间） | $0.0238/千次 | 【第三方独立】 |
+| TypeSafe onboarding（需登录） | 20×–200× | 40×–1,000× | 【官方】 |
+| 官方 evals 表手算 | 约 25×–95× | 76×–440× | 【第三方推算】 |
+| **独立实测汇总**（Every / Near Here / gemanor / 4esv / 硅星人 / Capital & Compute） | **4.8×–25×**（p50 314ms 落在官方 70–500ms 区间） | **8.6×–580×** | 【第三方】 |
 
-**怎么读这张表**：444.6× 是"只与最贵的 Claude Opus 5 那一行比"得到的；官方首页与博文口径差了近一个数量级；第三方实测的中位数落在 **5×–25× 速度、10×–60× 成本**。这不代表 JEV 不快——314 ms p50 的实测确实存在——而是**"200×/400×"不能当作容量规划的输入**。
+**读法**：444.6× 是"只跟最贵的 Opus 5 那一行比"得到的；第三方实测中位数落在 **5×–25× 速度、10×–60× 成本**。"快"是真的，但"200×/400×"不能用于容量规划。
 
-### 2.2 准确率：官方评测页里最扎眼的一格
+### 2.2 准确率：任务决定一切
 
-官方 evals 页【官方：<https://evals.typesafe.ai/>】四个工作流、9 个模型的对比（本报告直接从该页 HTML 解析，非媒体转述）：
+官方 evals 页四工作流（本报告直接从页面 HTML 解析，非媒体转述）：
 
-| 工作流 | JEV | 该工作流最佳 | JEV 排名 | JEV 成本排名 |
-|---|---|---|---|---|
-| Security Incidents | 61.7%（$0.0001, 0.3s） | Opus 5 workflow 66.2% | 第 3 | **最低** |
-| **Invoice Processing** | **61.8%**（$0.0011, 0.5s） | Sol workflow 79.1% | **第 8（仅胜 Haiku 4.5）** | 第 2 |
-| Customer Service | 76.0%（$0.0001, 0.4s） | Sol workflow 78.3% | 第 4 | **最低** |
-| Agent Trace Observability | 71.6%（$0.0003, 0.5s） | Sol workflow 76.6% | 并列第 6 | **最低** |
-| **四者平均** | **67.8%** | Sol workflow 74.1% | — | **最低** |
+| 工作流 | JEV | 该工作流最佳 | JEV 排名（共 9 个模型） |
+|---|---|---|---|
+| Security Incidents | 61.7% | Opus 5 workflow 66.2% | 第 3 |
+| **Invoice Processing** | **61.8%** | Sol workflow 79.1% | **第 8（仅胜 Haiku 4.5）** |
+| Customer Service | 76.0% | Sol workflow 78.3% | 第 4 |
+| Agent Trace Observability | 71.6% | Sol workflow 76.6% | 并列第 6 |
+| **平均** | **67.8%** | Sol workflow 74.1% | — |
 
-发票处理这一格里，JEV 输给包括最便宜模型 Luna（67.8%）与 DeepSeek V4 Flash（69.8%）在内的 8 个模型。
-
-**第三方准确率对照（节选）**：
+第三方独立测试（节选；完整版见 [research/ecosystem-benchmarks.md](research/ecosystem-benchmarks.md) 表 B）：
 
 | 测试 | 任务 | JEV | 对照 | 结论 |
 |---|---|---|---|---|
-| LangChain（09-20） | 500 次重复的二元判定，对照人类 oracle | **100%（500/500）** | Terra 99.8% / Luna 96.4% / Claude Sonnet 4.6 80.0% | **JEV 第一，方差最低**；总成本 $0.34 vs Claude $28.17 |
-| Arize AI | 18,514 封带真实标签的邮件 | 98.3% | **TF-IDF 分类器 98.4%** | 统计上**持平**（这是唯一有 ground truth 的大型独立测试） |
-| gemanor | 1,080 次 Python 规则审查 | 98.0% | Gemini / Fable 5.1 均 100% | 落后 2 点 |
+| LangChain（09-20） | 500 次重复二元判定，对人类 oracle | **100%** | Terra 99.8% / Sonnet 4.6 80.0% | **第一，方差最低**；总成本 $0.34 vs Claude $28.17 |
+| Arize | 18,514 封真实标签邮件 | 98.3% | **TF-IDF 98.4%** | 统计打平 |
+| gemanor | 1,080 次规则审查 | 98.0% | Gemini / Fable 100% | 落后 2 点 |
 | 4esv | 77 类意图 | 0.78 | Terra 0.85 | 落后 7 点 |
-| 硅星人（中文） | 50 条中文客服（4 项全对才计分） | **64–65.2%** | 便宜组第一比它高 1.2 分；强模型组 MiniMax M3 高 10.8 点 | **便宜组第二，强组垫底** |
-| RINNECODER | 3D 城市驾驶（自测） | **0/12 完整任务** | — | 522 次转向全部选"直行" |
-| NanoJev（项目方） | ViZDoom Basic | 56/128（≈ 未微调 Qwen3-0.6B） | NanoJev 128/128 | 对该游戏任务相对裸 base model 无增益 |
+| 硅星人（中文） | 50 条中文客服（四项全对才计分） | **64–65.2%** | MiniMax M3 高 10.8 点 | 强模型组**垫底** |
+| NanoJev（项目方） | ViZDoom Basic | 56/128 ≈ 裸 Qwen3-0.6B | NanoJev 128/128 | 该任务上无增益 |
 
-### 2.3 官方主动披露的方法学漏洞
+**方法学警告**：官方评测的"正确答案"是**两个 LLM 输出的平均**（非人工标注，官方自承这会偏向 OpenAI/Anthropic 的模型）；官方还自承评测跑在内部笔记本上、工作流由内部团队构建、"0% 类型错误"非实测、demo 的 state 偏短。
 
-官方 evals 页自己写了这些"nuance"，值得逐条记住：
+### 2.3 两个决定成败的隐藏变量
 
-- 评测在**"我们自己团队的笔记本上、美国西海岸"**跑的；
-- 工作流由**内部能力团队**构建，"可能存在偏差"；
-- **参考答案不是人工标注，而是 GPT-6 Astra 与 Claude Fable 5.1 输出的平均**——"这会偏向 OpenAI 与 Anthropic 的模型"；
-- 宣传里的"**0% 类型错误**"不是实测，官方原话是"Our number is not empirical"；
-- side-by-side demo 用的 state 很短，"**会让我们的模型显得更好看**"。
+**① 弃权率（abstain rate）——成本杀手。** 实测 30% 弃权时，成本优势从 76× 塌到 **3.2×**；天花板 = `1/弃权率`，与单价无关。弃权率是你自己造成的：薄 state 弃权 57.8%，state 加 3 个字段后 0.5 阈值下从 **65% 降到 40%**。
 
-### 2.4 两条最值得记住的独立结论
-
-1. **弃权率（abstain rate）是成本杀手**。第三方在真实队列上实测 **30% 的调用来不及给出可用置信度**，按有效成本公式 `blended = M/(1+aM)`，成本优势从 76× 塌缩到 **3.2×**。成本优势的天花板是 `1/弃权率`，与 JEV 单价多便宜无关。
-2. **校准是双面的**。在**可知任务**上 JEV 校准不错（OpenBookQA ECE 0.024 = 噪声底；LangChain 500 次重复判定方差最低）；但在**不可知任务**上严重过度自信（自造合成工单 ECE **0.107 = 噪声底的 4.4 倍**，`score` 子任务的温度参数需重拟合到 **3.40**）。此外官方返回的 `confidence` 字段独立测试下来**从未优于 `max(probabilities)`**。
-
-### 2.5 官方自曝的 9 类失败模式（工程上必须设降级路径）
-
-字面理解 · 算术与计数 · 日期时间比较 · 间接推理 · 大 state 含无关细节 · 对抗内容 · instructions 与 criteria 矛盾 · 结构不变量 · 生成任务。另外两条反直觉但重要：**问题与其否定的概率之和不必为 1**；**`score` 不能靠插值还原精确数值**。
+**② 校准是双面的。** 可知任务上很好（OpenBookQA ECE 0.024 ≈ 噪声底；LangChain 500 次重复方差最低）；不可知任务上过度自信（自造工单 ECE **0.107** = 噪声底 4.4 倍，`score` 子任务需重拟温度 **3.40**）；官方 `confidence` 字段**从未优于 `max(probabilities)`**——建议直接用后者自定阈值。
 
 ---
 
 ## 🌐 3. 开源生态全景 / The Open-Source Landscape <a id="s3-landscape"></a>
 
-> **EN** — Within five days of launch, GitHub accumulated thousands of JEV-related repos. Filtering for projects that actually explain the mechanism leaves ~20–25 real reproductions out of ~4,100 created-after-09-01 repos; the rest are skills, wrappers, awesome-lists and same-day bulk submissions. The dominant technique is identical everywhere: freeze an open LLM, read the logits of candidate answer tokens at a single position, apply a restricted softmax, and skip autoregressive decoding. Notably, the projects that measured their own speedup report **4×–5.2×**, not 200× — because a frozen 4B model still has to prefill the state. Almost none of them claim calibrated probabilities; several explicitly disclaim it.
+> *EN — Only ~20–25 repos actually implement the mechanism (out of 14k+ and counting); the dominant trick is "freeze an open LLM, read option-token logits, restricted softmax, skip decoding" — self-measured speedups are 4–5×, not 200×. Almost none claim calibrated probabilities; several explicitly disclaim it.*
 
-### 3.1 四个层次（先分清类别，否则数字没有可比性）
+### 3.1 先分清四个层次（否则数字没有可比性）
 
-| 层次 | 定义 | 代表 | 是否本地推理 | 是否有自训权重 |
+| 层次 | 定义 | 代表 | 本地推理 | 自训权重 |
 |---|---|---|---|---|
-| L0 客户端应用 | 自己写 prompt/schema，仍调用云端 JEV API | `browser-use/jev-ultrafast`、`tamaratran/fast-jev-compaction`、`perixtar/jev-e2e`、`typesafe-ai/skills` | ✗ | ✗ |
-| L1 接口复现 | 冻结现成开源模型，**只读 option token 的 logits** + 受限 softmax，跳过自回归解码 | `TheoLeeCJ/SemIf-OpenJev`、`r-ms/mini-jev`、`bnsd55/jevmlx`、`featherless-ai/simple-jev`、`ekzhang/openjev-sglang` | ✓ | ✗（权重冻结） |
+| L0 客户端应用 | 自己写 prompt/schema，仍调用云端 JEV API | `browser-use/jev-ultrafast`、`tamaratran/fast-jev-compaction`、`typesafe-ai/skills` | ✗ | ✗ |
+| L1 接口复现 | 冻结开源模型，**只读 option token 的 logits** + 受限 softmax，跳过自回归解码 | `TheoLeeCJ/SemIf-OpenJev`、`r-ms/mini-jev`、`bnsd55/jevmlx`、`featherless-ai/simple-jev`、`ekzhang/openjev-sglang` | ✓ | ✗（冻结） |
 | L2 复现 + 自训 head/adapter | 在 L1 基础上自己训练打分头或 LoRA | `vinnylarouge/jevlike`、`TianyuCodings/NanoJev`、`jaredpalmer/kev`、`bespokelabsai/nimble`、`wfzyx/von`、`Mapika/decider`、`togethercomputer/tev1` | ✓ | ✓（部分/适配器） |
-| L3 自研决策模型 | 自己训模型、发权重与数据 | **Laya**（见第 4 章） | ✓ | ✓ |
+| L3 自研决策模型 | 自己训模型、发权重与数据 | **Laya**（见 §4） | ✓ | ✓ |
 
-**这一区分很关键**：L1/L2 的所有"加速倍数"都建立在"**跳过解码**"上，而**state 的 prefill 成本省不掉**。所以它们的实测加速是**个位数倍数**，而不是 200×。
+**关键**：L1/L2 的"加速倍数"都建立在**跳过解码**上，而 **state 的 prefill 省不掉**——所以它们的实测加速是个位数倍数，不是 200×。
 
 ### 3.2 核心项目对照表（star 为 2026-09-29 GitHub API 快照）
 
@@ -292,74 +222,47 @@
 
 **未列入但值得知道**：[`logan-markewich/jeff`](https://github.com/logan-markewich/jeff)（261★，把 GLiNER 用于决策）、[`fstandhartinger/jevbench`](https://github.com/fstandhartinger/jevbench)（175★，基准工具）、`dzhng/jevgrep`（1,574★，代码检索 CLI，属应用而非决策模型）、`Heman10x-NGU/Verdict-open-jev`、`deepanwadhwa/OpenDecision`（57★，NLI 路线）、`Micha0827/snapjudge`（14★，MLX）、`NullPo-jp/PocketJev`（2★，Swift/iOS）。
 
-### 3.3 值得逐个看的几个项目
+### 3.3 重点项目快评
 
-**`TheoLeeCJ/SemIf-OpenJev`（4,547★，MIT）——生态里最有代表性、也最克制的一个**
-- 原名 OpenJev，README 首行曾改为 `# SemIf (formerly OpenJev)`，**09-22 再次更名为 `SemIf-OpenJev`**（旧链接均可重定向；APUS 的 README 仍引用最早的 `TheoLeeCJ/openjev`，属过期信息）。
-- 两种模式：**direct**（直接读选项 token 的 logits）与 **shared**（state 只 prefill 一次，KV 复用到并行问题）。
-- **自测加速只有 5.21×**（1.023s vs 5.332s，RTX 3090），并明确声明"Jev 的数字读自 TypeSafe 公开记录，**我们没有跑真实 Jev endpoint**"；复现的是 102 行的接口范式，而非官方 711 行的完整实现。
-- 支持 CUDA / Apple MLX / **WebGPU（浏览器内跑）**，是少数能在纯浏览器演示的方案。
+- **SemIf-OpenJev**（4,547★）：生态里最有代表性也最克制。direct/shared 两模式（state 只 prefill 一次、KV 复用到并行问题）；**自测加速只有 5.21×**（RTX 3090），明确声明"没跑过真实 Jev endpoint"；支持 **WebGPU 浏览器内跑**。
+- **mini-jev**（58★）：证据链最规范（预注册文档 + 27,900 条带 logits 的 HF 记录）。结论最不利：**读 letter logits 与语法约束生成精度相当（Δ −0.22pp）**，加速仅 4×（短文本）；明确写"不是校准概率"。
+- **NanoJev**（2,419★）：唯一自训权重 + 数据全公开；ViZDoom 128/128 vs JEV 56/128，但 Maze 4/10 反输 JEV 7/10（README 保留该行未删）。
+- **kev**（7,749★）：局限性写得最诚实；Brier 0.291 不如 JEV 0.211（**JEV 的分布质量更好**）；自曝 Apple Silicon 上比上一代慢 4–7 倍。
+- **tev1**（165★，**Together AI 官方**）：首家正规公司下场。Qwen3.5-4B LoRA SFT（37,840 条训练样本），**输入 2–24 个选项、输出单个答案字母、不给概率**——是约束生成式分类器，范式与 JEV 不同；权重公开，官方博客称"$17 训出自己的分类器"。
+- **fast-browser-use**（178★，APUS）：央广网/科技日报等称"全球最早一批复现"，但 star 远低于同期社区项目，README 无独立 Limitations 章节；技术上是标准 L1（DOM 元素编号 + 本地 Qwen3.5-9B 打分，单任务约 4 次）。
+- **nimble**（1,897★）：唯一敢把 base model 与 JEV 并列——324 条 held-out：Nimble-9B 90.1% vs base 66.4% vs **JEV 93.2%**（微调能追平但没超过）。
+- **open-alternative-jev**（57★）：最诚实的 benchmark——公开承认自己算错并保留错误分析。
+- **jev-ultrafast**（21.3k★，browser-use 官方）：注意它是 **L0 云端客户端**（把单步交互压缩成一次往返），代表用量优化，**不是本地替代**。
 
-**`r-ms/mini-jev`（58★）——证据链最规范，结论最不利**
-- 有 `PREREG.md`（含 v1.1–v1.3 修正），27,900 条带 logits 的运行记录公开在 HuggingFace。
-- 结论：**"读字母 logits"与"语法约束生成 JSON"精度相当（Δ −0.22pp）**，加速仅 **4×（短文本）/ 1.4–2.4×（2048 token + 共享前缀）**。
-- 明确写"这些是归一化的候选分数，**不是校准概率**"。
+### 3.4 为什么复现项目只有个位数倍数
 
-**`TianyuCodings/NanoJev`（2,419★）——唯一自训权重+数据全公开，且保留了打脸自己的那一行**
-- Qwen3-0.6B + 自训 decision heads；ViZDoom Basic 上 **128/128，JEV 56/128**；但 Maze 任务 **4/10 反输给 JEV 的 7/10**，README 保留该行未删。
+1. **Prefill 省不掉**：跳过解码只省生成本身；state 越长省得越少（mini-jev：短文本 4× → 2048 token 时 1.4–2.4×）。
+2. **没有专用硬件/服务栈**：官方是 70–500ms 托管服务，社区是单卡 RTX 3090 / M 系列 Mac。
+3. **推理框架不同**：`ekzhang/openjev-sglang` 用 SGLang 的 radix caching 做 prefill-only，是最接近"工程化"的路线之一。
 
-**`jaredpalmer/kev`（7,749★，Apache-2.0）——局限性写得最诚实**
-- Qwen3.5-0.8B/4B/9B + LoRA（rank 16）；在 typed-decisions 上 JEV 准确率 0.857 vs kev-9B 0.812，但 **Brier 更优（0.211 vs 0.291）**——即 JEV 的**分布质量**更好。
-- 自曝：Apple Silicon 上因缺少 DeltaNet 的快速 kernel，**比上一代模型慢 4–7 倍**。
+### 3.5 生态噪声警告
 
-**`APUS-AI-Lab/fast-browser-use`（178★，MIT）——媒体声量与实际影响力仍存在落差的样本**
-- 央广网、科技日报、新浪等报道其为"全球最早一批 / 国内首批 Jev 跨平台开源复现"，但截至 09-29 也仅 **178★**，远低于同期社区项目；README 也没有独立的 Limitations 章节。
-- 技术上是标准的 L1：把页面上可见可交互元素编号成候选动作集，由本地 Qwen3.5-9B 单次前向打分，单任务约 4 次打分；仅 `TYPE_TEXT` 类动作才真正生成 token。
-
-**`bespokelabsai/nimble`（1,897★）——目前唯一敢把 base model 与 JEV 并列的**
-- 324 条 held-out 上：**Nimble-9B 90.1%**，其 base（Qwen3.5-9B）66.4%，**JEV 1.13.0 93.2%**——即"微调小模型能追平但没超过"。
-
-**`togethercomputer/tev1`（165★，MIT）——首家正规公司下场，但范式不同**
-- Together AI 官方仓库：把 Qwen3.5-4B 用 LoRA SFT 微调（37,840 条训练样本 + 4,568 条验证），**输入 2–24 个选项、输出单个答案字母**——是"约束生成式分类器"，**不输出各选项概率**，与 JEV"概率先行"的范式不同。
-- 权重公开（`togethercomputer/Tev1-4B-experimental`），附数据配方与训练示例（官方博客称"$17 训出自己的分类器"）；自报 880/1,000 主决策、300/300 策略迁移决策。
-
-**`ikermoel/open-alternative-jev`（57★）——生态里最诚实的一份 benchmark**
-- 唯一公开承认自己算错、并保留错误分析（"The correction that made this README honest"）的项目。
-
-**关于 APUS 的 `fast-browser-use` 与 `browser-use/jev-ultrafast` 的区别**：后者（21.3k★）是 **L0 客户端**，仍然调用云端 JEV，只是把 browser-use 的单步交互压缩成"operation + target 两个 head、一次往返"；它代表的是**用量优化**，不是本地替代。
-
-### 3.4 这些复现项目与官方声称的差距，主要来自三个工程事实
-
-1. **Prefill 省不掉**：跳过解码只省生成本身；state 越长，省下的比例越低（mini-jev：短文本 4× → 2048 token 时 1.4–2.4×）。
-2. **没有专用硬件/服务栈**：官方是 70–500 ms 的托管服务（独立实测 p50 314 ms 落在区间内），社区是单卡 RTX 3090 / M 系列 Mac。
-3. **推理框架不同**：`ekzhang/openjev-sglang` 用 SGLang 的 radix caching 做 prefill-only，是目前最接近"工程化"的路线之一。
-
-### 3.5 生态噪声警告（引用时必须注意）
-
-- GitHub 上 `q=jev` 仓库 09-21 时约 **7,330** 个，**09-29 已达 14,028 个（8 天 +91%）**【GitHub API】；`topic:jev` 与 `topic:system-one` 各至少 55 个（09-21 口径）；**awesome-jev 类目录已超 20 个**（09-22 后新增 `kydlikebtc/awesome-jev`——自报收录 1,207 条资源，582★——与 `yibie/jev-engineering-zh` 中文翻译 128★ 等）。
-- 真正解释了机制、能跑的复现约 **20–25 个**；Reddit 上有人从 **287 个仓库里人工筛出 20 个**（该说法**未核实原文**）。
-- 最值得引用的一句社区警告来自 `yibie/awesome-jev` 作者本人：**"对同日批量提交的项目要格外警惕——数量不等于质量。"**
-- 生态目录站（`jevbest.com` 503 项、`madewithjev.com`，均为 09-21 口径）**都明确声明与 TypeSafe 无关**；其 star 快照**系统性偏低**（例如 jev-ultrafast 记 9,291，当日实际 12,585）。引用生态规模时请注明口径，因为三种口径互不一致。
+- GitHub `q=jev` 仓库 09-21 约 **7,330** → 09-29 约 **14,028**（8 天 +91%）【GitHub API】；awesome 类目录已超 **20** 个，多数建于发布首周。
+- 真正解释机制、能跑的复现约 **20–25 个**；`yibie/awesome-jev` 作者的警告值得引用：**"对同日批量提交的项目要格外警惕——数量不等于质量。"**
+- 生态目录站（jevbest.com、madewithjev.com，09-21 口径）**均声明与 TypeSafe 无关**，star 快照系统性偏低；引用生态规模请注明口径。
 
 ---
 
 ## 🏗️ 4. 真正自训并开放权重的决策模型 / Genuinely Retrained Open-Weight Models <a id="s4-open-weight-models"></a>
 
-> **EN** — Laya (Apache-2.0, **28k★**, three checkpoints on HuggingFace, ~421M ModernBERT-class encoder with decision heads) has become the dominant open-weight decision model: it beats JEV's published numbers on typed-decisions (0.766 vs 0.727) and is ~7.8× faster, but every Laya accuracy figure is currently self-reported, its base checkpoints are near chance zero-shot, and it degrades badly above ~20 options. On 2026-09-23 Together AI released **tev1** (Qwen3.5-4B LoRA, returns a single answer letter rather than option probabilities) — the first established company to ship an open-weight JEV-style model. The rest of the "retrained" camp are LoRA/head adaptations of frozen models (L2). The 2025-03 RL non-autoregressive lineage is real (arXiv:2503.23303) but the promised weights/dataset cannot be found.
+> *EN — Laya (Apache-2.0, 28k★, ~421M ModernBERT-class encoder + decision heads) is the dominant open-weight decision model: it beats JEV's published typed-decisions score (0.766 vs 0.727) and is ~7.8× faster — but all accuracy figures are self-reported, base checkpoints are near chance zero-shot, and it degrades badly above ~20 options. On 09-23 Together AI shipped tev1 (Qwen3.5-4B LoRA, returns a single answer letter, no option probabilities).*
 
-### 4.1 Laya：生态里唯一"自己训 + 开放权重"的决策模型家族（截至 09-29 已是生态 star 第一）
+### 4.1 Laya 速览（截至 09-29 已是生态 star 第一）
 
 | 项 | 内容 |
 |---|---|
-| 仓库 | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya)，**28,058★ / 2,446 fork**（09-29 快照；09-21 时为 5,060★ / 454 fork，8 天 +454%），Apache-2.0，创建 2026-09-18 |
-| 作者 | Nandakishor Mukkunnoth（Convai Innovations，独立研究者；GitHub 上**没有** convaiinnovations 组织，主仓库挂在个人账号下） |
-| 权重 | [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya)（ModernBERT-large + 决策头，**421M**，英文，HF likes **4,395**——09-21 时为 1,204）、[laya-multilingual](https://huggingface.co/convaiinnovations/laya-multilingual)（mmBERT-base，322M，100+ 语言，likes 323）、[laya-typed-decisions](https://huggingface.co/convaiinnovations/laya-typed-decisions)（微调版，likes 130） |
-| 发行渠道 | PyPI `laya` 0.3.4、[HF Space 在线 demo](https://huggingface.co/spaces/convaiinnovations/laya-demo)、第三方 MLX 移植 [mizorewww/laya-mlx](https://github.com/mizorewww/laya-mlx)（**6,604★**，09-21 时 1,938★，M3 Max 上 7.4–13.4 ms/问）、本地服务化工具 [ollaya-dev/ollaya](https://github.com/ollaya-dev/ollaya)（916★，把 Laya/decider/NLI/GLiClass 包装成 TypeSafe 兼容 API） |
-| 架构 | 双向编码器 + 在 `[MASK]` 位置对各选项打分再 softmax；**一次前向回答全部问题**，答案空间在请求时定义 |
-| 训练 | 自述 **RLCD**（以严格适当评分规则作奖励、GRPO 风格策略梯度），附 Kaggle 2×T4 微调 notebook；**训练数据未公开发布**（仅披露 AG News/BoolQ 在训练混合中） |
-| 文档 | 无独立论文，技术文档 = 模型卡 + `BENCHMARKS.md` |
-
-**生态位置的变化**：09-21 时 Laya 是"唯一自研开放权重的方案"；8 天后它已是全生态 star 第一（28k，超过 L0 客户端 `jev-ultrafast` 的 21.3k），且 09-23 起 Together AI 发布 open-weight 的 `tev1`（见 3.3 与 4.2）——**"公司级开源替代"开始出现**，这条赛道的竞争格局正在快速变化。
+| 仓库 | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya)，**28,058★ / 2,446 fork**（09-29 快照；09-21 时 5,060★，8 天 +454%），Apache-2.0 |
+| 作者 | Nandakishor Mukkunnoth（Convai Innovations，独立研究者，主仓库挂个人账号） |
+| 权重 | HF [`convaiinnovations/laya`](https://huggingface.co/convaiinnovations/laya)（ModernBERT-large + 决策头，421M，likes 4,395）、[`laya-multilingual`](https://huggingface.co/convaiinnovations/laya-multilingual)（mmBERT-base，322M，100+ 语言）、[`laya-typed-decisions`](https://huggingface.co/convaiinnovations/laya-typed-decisions)（微调版） |
+| 渠道 | PyPI `laya` 0.3.4；[HF Space demo](https://huggingface.co/spaces/convaiinnovations/laya-demo)；MLX 移植 [mizorewww/laya-mlx](https://github.com/mizorewww/laya-mlx)（6,604★，M3 Max 7.4–13.4 ms/问）；本地服务化 [ollaya-dev/ollaya](https://github.com/ollaya-dev/ollaya)（916★，TypeSafe 兼容 API） |
+| 架构 | 双向编码器 + `[MASK]` 位置对各选项打分再 softmax；**一次前向回答全部问题**，答案空间请求时定义 |
+| 训练 | 自述 RLCD（严格适当评分规则奖励、GRPO 风格策略梯度），附 Kaggle 2×T4 微调 notebook；**训练数据未公开**（仅披露 AG News/BoolQ 在训练混合中） |
+| 文档 | 无独立论文；技术文档 = 模型卡 + `BENCHMARKS.md` |
 
 **项目方自测基准（T4，对 JEV 官方公布数字）**：
 
@@ -368,22 +271,22 @@
 | typed-decisions（2,000 决策） | 0.727 | **0.766** | 该 checkpoint 在同一 benchmark 的训练 split 上微调过 |
 | AG News（4 标签） | 0.910 | **0.950** | 在训练混合中 |
 | DAIR Emotion（6 标签） | 0.480 | **0.595** | held-out；JEV 在 **16% 样本上给真实标签零概率** |
-| Banking77（>20 选项） | **0.870** | 0.425 | **JEV 反超**，原因是 Laya 选项共享固定 token 预算 |
-| ECE（越低越好） | 0.246 | **0.081** | Laya 需先做温度拟合；**出厂原始 ECE 是 0.213，反而比 JEV 差** |
+| Banking77（>20 选项） | **0.870** | 0.425 | **JEV 反超**：Laya 选项共享固定 token 预算 |
+| ECE（越低越好） | 0.246 | **0.081** | Laya 需先温度拟合；**出厂原始 ECE 0.213 反而比 JEV 差** |
 | p50 延迟（单问） | 236–276 ms | **32.8 ms** | 约 7.8× |
 | 许可证 | 闭源 API | **Apache-2.0** | — |
 
-**可信度评估（重要）**：JEV 那一侧的数字有独立出处（[AbdelStark/jev-benchmarks](https://github.com/AbdelStark/jev-benchmarks) 等实测 JEV AG News 0.910 / Banking77 0.870 / DAIR 0.480 / p50 236–256 ms），但 **Laya 侧的全部精度数字目前只有项目方自测，尚未见到高关注度的独立复测**。
+**可信度评估**：JEV 一侧的数字有独立出处（[AbdelStark/jev-benchmarks](https://github.com/AbdelStark/jev-benchmarks) 等实测 JEV AG News 0.910 / Banking77 0.870 / p50 236–256ms）；**Laya 一侧的全部精度数字目前只有项目方自测**，尚未见到高关注度的独立复测。
 
-**Laya 自己承认的局限（诚实度高于生态平均水平）**：
-- **base checkpoint 在 zero-shot 下接近随机**：typed-decisions 上 0.362（多数类基线 0.461、随机 0.318）；**0.766 完全来自微调**——它是"一个适合微调的快速底座"，不是开箱即用的决策引擎。
-- **超过 20 个选项就退化**：77 选项时每个标签只剩 3–4 个 token（`head_max_len` 默认 192/256），Banking77 掉到 0.425；官方建议调大预算或做两阶段层级选择。
-- **`score` 原语最弱**：SST-5 上 0.372。
-- **出厂过自信**，且 `laya-multilingual` **完全没有附带拟合好的温度参数**，用之前必须自己拟合。
-- **多语言不能只靠单 checkpoint**：英文 checkpoint 在 51 种语言上 macro 仅 0.227、macro ECE 高达 0.733，**高棉语以 95.2% 置信度给出 0.000 分**；因此才需要"路由到不同 checkpoint"，而切换未预加载的模型会触发 7–10 秒重载。
-- **soft 分布质量仍不如 JEV**：typed-decisions 上 argmax 更高（0.766 vs 0.727），但软分布准确率更低（0.471 vs 0.580）。
+**Laya 自己承认的局限（诚实度高于生态平均）**：
 
-### 4.2 L2 层：自训 head / LoRA 的方案（不是从零训模型）
+- **base checkpoint zero-shot 接近随机**：typed-decisions 上 0.362（多数类基线 0.461）；**0.766 完全来自微调**——它是"适合微调的快速底座"，不是开箱即用的决策引擎。
+- **>20 个选项退化**：77 选项时每个标签只剩 3–4 个 token（`head_max_len` 默认 192/256），Banking77 掉到 0.425；需调大预算或做两阶段层级选择。
+- **`score` 最弱**（SST-5 0.372）；**出厂过自信**，且 `laya-multilingual` 完全没附带拟合好的温度参数。
+- **多语言不能只靠单 checkpoint**：英文 checkpoint 在 51 种语言上 macro 仅 0.227、macro ECE 0.733，**高棉语以 95.2% 置信度给出 0.000 分**；切换未预加载模型会触发 7–10s 重载。
+- **soft 分布质量仍不如 JEV**（0.471 vs 0.580）。
+
+### 4.2 其他自训 / 适配方案（L2 层，均未见第三方复跑）
 
 | 项目 | 自训了什么 | 对 JEV 的相对位置 |
 |---|---|---|
@@ -393,127 +296,82 @@
 | [wfzyx/von](https://github.com/wfzyx/von) | ModernBERT-Large 395M + RLCD 后训练 | 自报 T=1.1692；README 内部两处数字矛盾 |
 | [Heman10x-NGU/openJev-verdict-2.0](https://github.com/Heman10x-NGU/openJev-verdict-2.0) | ModernBERT-base 151M + 双置信头 | 自报 ECE 1.44%（仅项目方 test receipt） |
 | [Mapika/decider](https://github.com/Mapika/decider) | 含 calibration-aware RL | 未核实独立复跑 |
-| [togethercomputer/tev1](https://github.com/togethercomputer/tev1) | Qwen3.5-4B LoRA SFT（37,840 样本），**Together AI 官方** | 自报 880/1,000 主决策、300/300 策略迁移；**只输出答案字母、不给选项概率**，范式与 JEV 不同 |
+| [togethercomputer/tev1](https://github.com/togethercomputer/tev1) | Qwen3.5-4B LoRA SFT（37,840 样本），**Together AI 官方** | 自报 880/1,000 主决策、300/300 策略迁移；**只输出答案字母、不给概率** |
 | [allebee/jevk5](https://github.com/allebee/jevk5) | 自称 open-weight 替代（Apache-2.0） | 123★（09-29）；细节与 benchmark 未核实 |
 
-这些方案值得参考，但都没有第三方复跑，且底座与任务各不相同，**不能横向比较**。
+### 4.3 谱系核实："2025 年 3 月那篇 RL 论文"是真的吗？
 
-### 4.3 谱系核实："2025 年 3 月那篇 RL 非自回归决策论文"是真的吗？
-
-- 论文存在：[arXiv:2503.23303 SalesRLAgent](https://arxiv.org/abs/2503.23303)（2025-03-30，与 Laya 同一作者），用 PPO 训练销售对话的转化概率模型、85 ms 推理、非自回归概率估计——**概念谱系属实**，但只是一篇 11KB 短文、领域狭窄。
-- 传闻中"当时就开源了权重、数据集与 PyPI 包" **未能核实**：HuggingFace 上找不到对应模型或数据集，PyPI 三个候选名字均 404。（后续的 [arXiv:2510.01237](https://arxiv.org/abs/2510.01237) 是另一个主题——LLM 置信度路由与幻觉缓解。）
+- 论文存在：[arXiv:2503.23303 SalesRLAgent](https://arxiv.org/abs/2503.23303)（2025-03-30，与 Laya 同一作者），PPO 训练销售对话转化概率模型、85ms 推理——**概念谱系属实**，但只是 11KB 短文、领域狭窄。
+- 传闻中"当时就开源了权重、数据集与 PyPI 包"**未能核实**：HF 上找不到对应模型或数据集，PyPI 候选名均 404。
 
 ### 4.4 传统方案在"严格 schema + 要概率"场景里的实际价值
 
 | 方案 | 概率质量 | 需要的标注量 | 延迟量级 | 适用性 |
 |---|---|---|---|---|
-| [ModernBERT](https://huggingface.co/answerdotai/ModernBERT-base) + 分类头（Apache-2.0） | 温度缩放后 ECE 约 0.02–0.08（**文献经验值，未独立核实**） | 每个 schema 数百–数千条 | GPU 数 ms–数十 ms | 类别固定、有标注、追求稳定与低成本时的首选 |
+| [ModernBERT](https://huggingface.co/answerdotai/ModernBERT-base) + 分类头（Apache-2.0） | 温度缩放后 ECE 约 0.02–0.08（**文献经验值，未独立核实**） | 每个 schema 数百–数千条 | GPU 数 ms–数十 ms | 类别固定、有标注时的首选 |
 | Embedding（如 [mmBERT](https://huggingface.co/jhu-clsp/mmBERT-base)）+ 阈值 | 相似度**不是概率**，需 Platt/isotonic 拟合 | 数十条即可 | CPU 10–50 ms | 中等精度的路由/去重 |
 | Zero-shot 判别（如 GLiNER2.5） | 无校准保证 | 0 | GPU 数十 ms | 快速原型，第三方实测精度明显低于 JEV |
-| 微调小生成模型输出 JSON | 自述 confidence **无校准保证** | 数百–数千条 | 100 ms–1 s | 需要同一次调用里混合"判断 + 生成"时才有优势 |
+| 微调小生成模型输出 JSON | 自述 confidence **无校准保证** | 数百–数千条 | 100 ms–1 s | 同一次调用要混合"判断 + 生成"时才有优势 |
 
-**一句话结论**：如果你有标注数据，"微调一个编码器分类器"在延迟、成本、可校准性上通常都优于任何决策模型；决策模型的真正价值在于**免训练的多次判断 + 不生成文本的确定性接口**。
+**一句话**：有标注数据时，"微调一个编码器分类器"在延迟、成本、可校准性上通常优于任何决策模型；决策模型的真正价值在于**免训练的多次判断 + 不生成文本的确定性接口**。
 
 ---
 
 ## 🧭 5. 选型建议 / Selection Guide <a id="s5-selection-guide"></a>
 
-> **EN** — Use hosted JEV when you want to validate the "typed decision" pattern quickly and your data may leave your network. Go local (SemIf / kev / jevmlx / simple-jev / von) when offline or data-residency matters, but measure the accuracy gap yourself. Only Laya is a genuine self-hosted *model*, and it must be fine-tuned and temperature-fitted to be useful. If you have labels, a fine-tuned encoder classifier is often the cheapest and best-calibrated option. Always pin the model version, always measure the abstain rate, and never plan capacity on the advertised speedup.
+> *EN — Use hosted JEV to validate the "typed decision" pattern quickly; go local (L1/L2) when offline or data-residency matters; only Laya is a genuine self-hosted model and must be fine-tuned and temperature-fitted; with labels, a fine-tuned encoder classifier is often cheapest and best-calibrated. Always pin the model version and measure the abstain rate.*
 
 ### 5.1 按场景决策
 
 | 你的场景 | 建议 | 理由与注意 |
 |---|---|---|
-| 想在几小时内验证"类型化决策"是否适合业务 | **直接用云端 JEV**（Playground + API） | 免训练、月成本低；先用你自己的 50–200 条样本测准确率、弃权率、校准 |
-| 数据不能出境 / 必须离线 / 内网部署 | **L1/L2 方案**：SemIf、kev、simple-jev、jevmlx、von、NanoJev | 目标是"接口范式"而非官方精度；务必自测**本地 vs 云端的一致率** |
-| 有标注数据、要长期自托管且控成本 | **Laya（微调 + 温度拟合）**，或 **微调 ModernBERT 类编码器** | Laya base checkpoint 在 typed-decisions 上接近瞎猜（0.362 vs 随机 0.318），价值全在微调；RAG/分类任务上传统分类器常已足够 |
-| 单问题选项超过 20–50 个 | **JEV 仍占优**（Banking77：JEV 0.870 vs Laya 0.425），或改用**两阶段"先粗分再精选"** | Laya 的选项共享固定 token 预算（`head_max_len`），77 个选项时每个标签只剩 3–4 个 token，精度崩掉 |
-| 只要"是/否"，量还很大 | **先拿 TF-IDF / 传统分类器做基线** | Arize 用 18,514 封真实标签邮件实测：JEV 98.3% vs TF-IDF 98.4%，**统计上无差异** |
-| 中文等非英语场景 | ⚠️ **必须自测** | 官方承认 CJK "能用但不等同"；中文独立实测 64–65.2%，在强模型组垫底 |
-| 需要精确数值/算术/日期比较 | ⚠️ **不要让模型做** | 官方 jaggedness 页把它们列为明确失败模式 |
-| 要做实时交互（语音、游戏循环） | 可以用，但先量 p95 | 独立实测 p50 314 ms / p95 399 ms；`fast-jev-compaction`、`jev-ultrafast` 是参考用法 |
+| 几小时内验证"类型化决策"是否适合业务 | **直接用云端 JEV**（Playground + API） | 免训练；先用自己的 50–200 条样本测准确率、弃权率、校准 |
+| 数据不能出境 / 必须离线 / 内网 | **L1/L2 方案**：SemIf-OpenJev、kev、simple-jev、jevmlx、von、NanoJev | 目标是"接口范式"而非官方精度；务必自测**本地 vs 云端的一致率** |
+| 有标注数据、长期自托管控成本 | **Laya（微调 + 温度拟合）**，或**微调 ModernBERT 类编码器** | Laya base checkpoint 接近瞎猜（0.362 vs 随机 0.318），价值全在微调 |
+| 单问题选项超过 20–50 个 | **JEV 仍占优**（Banking77：0.870 vs Laya 0.425），或**两阶段"先粗分再精选"** | Laya 选项共享固定 token 预算，77 选项时每标签只剩 3–4 个 token |
+| 只要"是/否"，量很大 | **先拿 TF-IDF / 传统分类器做基线** | Arize 实测：JEV 98.3% vs TF-IDF 98.4%，**统计上无差异** |
+| 中文等非英语场景 | ⚠️ **必须自测** | 官方承认 CJK "能用但不等同"；中文独立实测 64–65.2%，强模型组垫底 |
+| 需要精确数值/算术/日期比较 | ⚠️ **不要让模型做** | 官方 jaggedness 页明确列为失败模式 |
+| 实时交互（语音、游戏循环） | 可以用，先量 p95 | 独立实测 p50 314ms / p95 399ms；参考 `jev-ultrafast`、`fast-jev-compaction` 用法 |
 
 ### 5.2 上线前的 7 条检查清单
 
-1. **建基线**：用你的真实样本跑一次"传统分类器 / 规则 / 现成 LLM"三条基线，别只看 JEV 自己的分数。
-2. **量弃权率**：设阈值后统计有多少请求会落到"置信度不足"分支；有效成本 ≈ 单价 / (1 − 弃权率)。
-3. **验校准**：在你的数据上算 ECE 与可靠性曲线；必要时按 (问题类型 × 选项数) 分桶重拟温度参数。
+1. **建基线**：用真实样本跑"传统分类器 / 规则 / 现成 LLM"三条基线，别只看 JEV 自己的分数。
+2. **量弃权率**：设阈值后统计"置信度不足"分支占比；有效成本 ≈ 单价 / (1 − 弃权率)。
+3. **验校准**：在自己的数据上算 ECE 与可靠性曲线；必要时按 (问题类型 × 选项数) 分桶重拟温度参数。
 4. **给失败模式留降级路径**：算术、日期、间接推理、长 state 干扰这四类别交给它。
 5. **锁版本**：官方别名会漂移，生产环境 pin `jev-1.13.0` 这类版本化 ID。
-6. **数据合规**：确认 `state` 里是否会带入个人信息；官方已于 09-29 核实**不训练客户请求/响应**，但零数据保留（ZDR）**仅企业版**，非企业版请自行评估。
-7. **选开源方案时先看三件事**：许可证（见 6.6）、最近提交时间、README 里有没有 Limitations 章节。
+6. **数据合规**：确认 `state` 是否带入个人信息；官方已核实不训练客户数据（09-29），但 **ZDR 仅企业版**。
+7. **选开源方案先看三件事**：许可证（见 §6 风险 6）、最近提交时间、README 里有没有 Limitations 章节。
 
 ---
 
-## ⚠️ 6. 风险与局限 / Risks and Limitations <a id="s6-risks"></a>
+## ⚠️ 6. 风险清单 / Risk Checklist <a id="s6-risks"></a>
 
-> **EN** — The main risks are: (1) official throughput/cost multipliers are not reproducible and vary by a factor of ~10 across the vendor's own pages; (2) abstention silently destroys the cost advantage; (3) calibration is task-dependent and the `confidence` field is worse than `max(probability)`; (4) closed weights with no per-customer fine-tuning means you cannot fix systematic errors except by prompt/schema engineering; (5) the open-source side has a real licensing gap (many repos have no license at all) and routinely mislabels itself as "JEV"; (6) the ecosystem is inflated by same-day bulk submissions — volume is not quality.
+> *EN — Eight risks, one line each: vendor lock-in, data compliance, irreproducible official numbers, two-sided calibration, abstain-rate cost collapse, open-source licensing gaps, ecosystem inflation, and the "is it just a classifier wrapper" question.*
 
-### 6.1 供应商与架构锁定
-
-- 权重不公开、无微调接口、无本地部署路径：模型说不行的地方，**只能靠改 state 结构、拆问题、加规则绕**，不能靠训练修。
-- 别名 `jev-latest` / `jev-preview` 会指向新版本，线上行为可能在你不知情时改变 → **必须 pin 版本 ID**。
-- 官方文档里**没有** KV-cache、批量大小、并发模型等任何底层说明（本次对全部官方文档 grep 过，零命中）；"官方支持 KV-cache 广播"的说法**只出现在第三方复现项目的描述里**，属推断而非事实。
-
-### 6.2 数据合规与地区
-
-- 央广网报道"尚未对中国大陆地区开放"【第三方】；而官方文档与条款中**未见地区限制条款**（已 grep 核实）。落地前请自行与官方确认。
-- 该服务是**纯云端**，`state` 必然出网。官方 2026-09-29 的 Models 页明确："**Jev is not trained on customer requests or responses**"；DPA、隐私政策与**零数据保留（ZDR）仅企业版**提供（<https://docs.typesafe.ai/models>）——非企业版的数据保留策略仍需自行与官方确认。
-- 中文/多语言能力非其强项（官方自述 + 独立实测均支持该结论）。
-
-### 6.3 官方数字不可直接用于容量规划
-
-- 同一家公司给出 **4 个互相矛盾的倍数**（193.6×/444.6×、40×–200×、20×–200×、40×–1,000×）。
-- 官方 benchmark 的"正确答案"是**两个 LLM 输出的平均**，不是人类标注；官方自己承认这会偏向 OpenAI/Anthropic 的模型。
-- 官方自己承认评测在内部笔记本上、由内部团队构建工作流、"0% 类型错误"不是实测、demo 用的 state 偏短。
-- 唯一有真实 ground truth 的大型独立测试（Arize，18,514 封邮件）显示与 TF-IDF 打平。
-
-### 6.4 校准可信度是双面的
-
-| 结论 | 证据 |
-|---|---|
-| 可知任务上不错 | OpenBookQA ECE 0.024（= 噪声底）；LangChain 500 次重复判定 100% 一致、方差最低 |
-| 不可知任务上过度自信 | 自造合成工单 ECE 0.107（噪声底的 4.4×）；`score` 子任务需重拟温度 3.40 |
-| 返回的 `confidence` 不如 `max(probabilities)` | 独立测试 ECE 0.18 |
-| 方向会随原语翻转 | choice/score 过度自信（T≈3.3），boolean 反而欠自信（T≈0.66） |
-| 逻辑不一致 | 问题与其否定概率之和可 ≠ 1（官方示例 1.19） |
-| 硬失败存在 | DAIR Emotion 上 **16% 样本把零概率给了真实标签**（Laya 项目方报告） |
-
-### 6.5 "弃权率"是最容易被忽略的成本项
-
-- 实测 **30% 弃权** → 成本优势从 76× 掉到 **3.2×**。
-- 上限公式：`有效成本倍数 ≤ 1 / 弃权率`，与单价无关。
-
-### 6.6 开源侧的许可证与命名风险
-
-- **无许可证（license = null，采用有法律风险，09-29 核实）**：`yibie/awesome-jev`（已涨到 **1,950★**）、`bespokelabsai/nimble`（**1,897★**）、`ekzhang/openjev-sglang`、`SAGAR-TAMANG/sarvam-jev`、`SiliconLabAI/OpenJev` 等。**好消息**：`featherless-ai/simple-jev` 已于 09-28 补为 Apache-2.0。
-- **NOASSERTION**（仓库有 LICENSE 文件但 GitHub 无法识别）：`Heman10x-NGU/openJev-verdict-2.0`、`rorshopping/jev-on-a-laptop`、`kydlikebtc/awesome-jev`、`yibie/jev-engineering-zh` 等。
-- **重新分发底座模型权重的合规性**：Qwen3.5-4B 本身是 Apache-2.0，因此主流复现项目的再分发**通常没有冲突**；真正明显的缺口是 **NanoJev 的 HuggingFace 权重仓库完全未声明许可证**。不要照搬"复现项目必有许可证问题"的流行说法。
-- **命名误导**：把复现项目直接叫 "JEV" 会让人误以为拿到官方模型。正面例子是 `TheoLeeCJ/SemIf-OpenJev` 主动改名并在 README 声明"复现的是接口模式，不是 JEV 未公开的模型与训练，与 TypeSafe 无关"。
-
-### 6.7 生态存在明显注水
-
-- GitHub `q=jev` 仓库 09-21 约 **7,330** 个 → 09-29 约 **14,028** 个（8 天 +91%），真正解释机制的仍约 **20–25** 个。
-- `awesome-jev` 类目录已超 **20** 个，多数建于发布首周；目录站的 star 快照**系统性偏低**。
-- 有仓库 README **内部自相矛盾**（如 `wfzyx/von` 的 T 值与训练集规模各写两版），引用其数字前请交叉核对。
-- 引用任何复现项目的 benchmark 前请记住：**本报告没有对任何仓库做实际跑测**，这些数字全部是项目方自报。
-
-### 6.8 路线级质疑
-
-- 有独立分析（Archer，1,029 次黑盒探针）给出**证伪"独立 logits + softmax"**的实验：加入无关选项后 log-odds 从 +0.38 降到 +0.11（10/10 分组一致）——即它可能不是简单的"分类器包装"。
-- 但反向证据也存在：对严格 JSON schema 的强模型（Terra）同样能做到"零幻觉"；因此**"不生成文本"本身不构成护城河**，关键是延迟、成本与概率质量这三项的组合。
+| # | 风险 | 一句话 | 应对 |
+|---|---|---|---|
+| 1 | **供应商锁定** | 闭源、无微调、别名会漂移；模型不行只能靠改 schema/拆问题/加规则绕 | pin 版本化 ID；判据写进 criteria；保留本地降级方案 |
+| 2 | **数据合规** | 纯云端、`state` 必出网；官方不训练客户数据（09-29 核实）但 **ZDR 仅企业版**；大陆可用性报道与官方条款不一致 | 敏感场景先确认 DPA/ZDR；考虑本地方案 |
+| 3 | **官方数字不可复现** | 同一家公司 4 个互相矛盾的倍数口径；参考答案非人工标注；KV-cache 机制**纯属第三方推断**（官方文档零提及） | 容量规划用第三方实测（5–25×），不用官方首页 |
+| 4 | **校准双面** | 不可知任务上过度自信（ECE 0.107 = 噪声底 4.4 倍）；官方 `confidence` 字段不如 `max(probabilities)`；问题与其否定概率之和可 ≠ 1 | 用自己的数据算 ECE；阈值用 `max(probabilities)` |
+| 5 | **弃权率吃掉成本** | 实测 30% 弃权 → 76× 成本优势变 3.2×；天花板 = `1/弃权率` | 上线前先测弃权率；state 给足（实测加 3 个字段弃权率 −25pp） |
+| 6 | **开源许可证缺口** | 无 license（采用有法律风险）：`yibie/awesome-jev`（1,950★）、`bespokelabsai/nimble`（1,897★）、`ekzhang/openjev-sglang` 等；NanoJev 的 HF 权重未声明许可证 | 采用前查 license 字段（`featherless-ai/simple-jev` 已于 09-28 补 Apache-2.0） |
+| 7 | **生态注水** | 仓库 8 天翻倍至 14,028；真正能跑的约 20–25 个；目录站 star 系统性偏低 | 信 `gh api` 不信目录站；警惕同日批量提交 |
+| 8 | **路线级质疑** | "不生成文本"不构成护城河（严格 JSON schema 的强模型同样零幻觉）；但也有黑盒探针显示它**不是**简单的"独立 logits + softmax"包装 | 评估价值看 **延迟 × 成本 × 概率质量** 三项组合，不看单点 |
 
 ---
 
 ## 📎 7. 附录：核实方法、未核实清单与参考链接 / Appendix <a id="s7-appendix"></a>
 
-> **EN** — Repo metadata was pulled live with `gh api` on 2026-09-21 and refreshed on 2026-09-29; official documentation pages, the official eval site, and launch post were fetched and parsed directly (raw captures live in `research/`). Numbers that only exist in secondary reporting are flagged as unverified below. Everything here is reproducible with the commands in 7.4.
+> *EN — Repo metadata pulled live with `gh api` on 2026-09-21 and refreshed 2026-09-29; official docs/eval pages fetched and parsed directly (raw notes in `research/`). Reproducible with the commands in 7.4.*
 
 ### 7.1 本仓库内容
 
 ```
-README.md                        # 本报告正文（v1.2）
-REPORT-EN.md                     # 全英文版报告（v1.1 内容的完整英文翻译）
+README.md                        # 本报告正文（v1.3）
+REPORT-EN.md                     # 全英文版报告
 LICENSE                          # CC BY 4.0（报告文本许可）
 CITATION.cff                     # 引用格式
 CHANGELOG.md                     # 版本更新记录
@@ -589,8 +447,6 @@ curl -s https://evals.typesafe.ai/ | sed 's/<[^>]*>/ /g'
 - 生态目录：<https://jevbest.com/zh/> · <https://madewithjev.com/github-repos> · <https://github.com/logicrw/awesome-jev-projects> · <https://github.com/yibie/awesome-jev>
 
 **对比图说明**：本报告不提供"谁最快"的单一结论表，因为官方口径互相矛盾、第三方测试任务各不相同、且所有开源项目的数字均未经独立复跑。做选型时请以**你自己数据上的实测**为准。
-
----
 
 <div align="center">
 
